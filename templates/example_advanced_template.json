@@ -1,0 +1,180 @@
+{
+  "name": "advanced_product_scraper",
+  "description": "Advanced product scraper with fetcher configuration",
+  "version": "2.0.0",
+  
+  "fetcher_config": {
+    "type": "auto",
+    "basic": {
+      "timeout": 30,
+      "headers": {
+        "Accept": "text/html,application/xhtml+xml",
+        "Accept-Language": "en-US,en;q=0.9"
+      }
+    },
+    "async": {
+      "timeout": 30,
+      "follow_redirects": true
+    },
+    "stealth": {
+      "headless": true,
+      "humanize": true,
+      "block_webrtc": true,
+      "spoof_canvas": true,
+      "os_randomization": true,
+      "network_idle": true,
+      "wait_for_selector": ".product-container",
+      "google_search": true,
+      "disable_ads": true
+    },
+    "playwright": {
+      "headless": true,
+      "network_idle": true,
+      "wait_for_selector": ".product-list",
+      "wait_for_timeout": 30,
+      "block_resources": ["image", "font", "media"],
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      }
+    }
+  },
+  
+  "requirements": {
+    "javascript_required": false,
+    "stealth_required": false,
+    "anti_bot_protection": false,
+    "concurrent_scraping": true
+  },
+  
+  "selectors": {
+    "title": {
+      "selector": "h1.product-title",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".product-name",
+        "h1",
+        "[itemprop='name']"
+      ]
+    },
+    "price": {
+      "selector": ".price-now",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".product-price",
+        "[itemprop='price']",
+        ".cost"
+      ]
+    },
+    "description": {
+      "selector": ".product-description",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".description",
+        "[itemprop='description']"
+      ]
+    },
+    "images": {
+      "selector": ".product-images img",
+      "type": "all",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".gallery img",
+        "[itemprop='image']"
+      ]
+    },
+    "availability": {
+      "selector": ".availability-status",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".in-stock",
+        "[itemprop='availability']"
+      ]
+    },
+    "rating": {
+      "selector": ".rating-value",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        "[itemprop='ratingValue']",
+        ".stars-rating"
+      ]
+    },
+    "reviews_count": {
+      "selector": ".reviews-count",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        "[itemprop='reviewCount']",
+        ".review-count"
+      ]
+    }
+  },
+  
+  "pagination": {
+    "enabled": true,
+    "next_selector": "a.next-page",
+    "max_pages": 10,
+    "delay_between_pages": [1, 3]
+  },
+  
+  "post_processing": [
+    {
+      "type": "strip",
+      "field": "title"
+    },
+    {
+      "type": "extract_number",
+      "field": "price"
+    },
+    {
+      "type": "extract_number",
+      "field": "rating"
+    },
+    {
+      "type": "extract_number",
+      "field": "reviews_count"
+    },
+    {
+      "type": "lowercase",
+      "field": "availability"
+    }
+  ],
+  
+  "validation_rules": {
+    "required_fields": ["title", "price"],
+    "field_types": {
+      "title": "string",
+      "price": "number",
+      "description": "string",
+      "images": "list",
+      "availability": "string",
+      "rating": "number",
+      "reviews_count": "number"
+    },
+    "field_patterns": {
+      "availability": "^(in stock|out of stock|limited|available)$"
+    }
+  },
+  
+  "adaptive_selectors": {
+    "enabled": true,
+    "learning_mode": true,
+    "similarity_threshold": 0.85
+  },
+  
+  "fallback_selectors": {
+    "enabled": true,
+    "max_attempts": 3
+  },
+  
+  "is_active": true,
+  "usage_count": 0,
+  "success_rate": 100.0,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z"
+}

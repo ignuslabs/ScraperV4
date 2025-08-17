@@ -1,0 +1,161 @@
+Date : 2025-08-16 23:15:41
+Directory : /Users/joecorella/Desktop/ScraperV4
+Total : 101 files,  23265 codes, 2377 comments, 4821 blanks, all 30463 lines
+
+Languages
++------------------+------------+------------+------------+------------+------------+
+| language         | files      | code       | comment    | blank      | total      |
++------------------+------------+------------+------------+------------+------------+
+| Python           |         48 |      8,862 |      1,857 |      2,255 |     12,974 |
+| Markdown         |         33 |      7,148 |         17 |      1,475 |      8,640 |
+| JavaScript       |          9 |      4,266 |        420 |        637 |      5,323 |
+| PostCSS          |          4 |      2,464 |         62 |        415 |      2,941 |
+| HTML             |          3 |        280 |         17 |         27 |        324 |
+| JSON             |          3 |        228 |          0 |          9 |        237 |
+| pip requirements |          1 |         17 |          4 |          3 |         24 |
++------------------+------------+------------+------------+------------+------------+
+
+Directories
++----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                   | files      | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                      |        101 |     23,265 |      2,377 |      4,821 |     30,463 |
+| . (Files)                                                                              |          6 |        614 |          9 |        142 |        765 |
+| .claude                                                                                |         23 |        663 |          0 |        181 |        844 |
+| .claude (Files)                                                                        |          1 |         39 |          0 |          0 |         39 |
+| .claude/agents                                                                         |         22 |        624 |          0 |        181 |        805 |
+| docs                                                                                   |          1 |        930 |          0 |        173 |      1,103 |
+| prompts                                                                                |          5 |      4,861 |         17 |        942 |      5,820 |
+| src                                                                                    |         31 |      4,385 |      1,083 |      1,034 |      6,502 |
+| src (Files)                                                                            |          2 |         35 |          6 |         12 |         53 |
+| src/core                                                                               |          3 |         96 |         21 |         26 |        143 |
+| src/data                                                                               |          4 |        317 |         34 |         65 |        416 |
+| src/scrapers                                                                           |          6 |      1,281 |        533 |        325 |      2,139 |
+| src/services                                                                           |          5 |      1,003 |        200 |        199 |      1,402 |
+| src/templates                                                                          |          4 |        535 |        107 |        155 |        797 |
+| src/utils                                                                              |          4 |        683 |        138 |        171 |        992 |
+| src/web                                                                                |          3 |        435 |         44 |         81 |        560 |
+| templates                                                                              |          2 |        189 |          0 |          9 |        198 |
+| tests                                                                                  |         18 |      4,655 |        769 |      1,266 |      6,690 |
+| tests (Files)                                                                          |          7 |      1,315 |        212 |        323 |      1,850 |
+| tests/integration                                                                      |          3 |        950 |        182 |        241 |      1,373 |
+| tests/unit                                                                             |          8 |      2,390 |        375 |        702 |      3,467 |
+| web                                                                                    |         15 |      6,968 |        499 |      1,074 |      8,541 |
+| web (Files)                                                                            |          2 |        238 |         17 |         22 |        277 |
+| web/static                                                                             |         13 |      6,730 |        482 |      1,052 |      8,264 |
+| web/static/css                                                                         |          4 |      2,464 |         62 |        415 |      2,941 |
+| web/static/css (Files)                                                                 |          1 |      1,062 |         24 |        156 |      1,242 |
+| web/static/css/components                                                              |          3 |      1,402 |         38 |        259 |      1,699 |
+| web/static/js                                                                          |          9 |      4,266 |        420 |        637 |      5,323 |
+| web/static/js (Files)                                                                  |          2 |        566 |         43 |         85 |        694 |
+| web/static/js/components                                                               |          4 |      2,954 |        202 |        442 |      3,598 |
+| web/static/js/utils                                                                    |          3 |        746 |        175 |        110 |      1,031 |
++----------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++----------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| filename                                                                               | language         | code       | comment    | blank      | total      |
++----------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/ai-engineer.md                      | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/api-documenter.md                   | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/architect-review.md                 | Markdown         |         31 |          0 |         12 |         43 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/backend-architect.md                | Markdown         |         24 |          0 |          6 |         30 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/code-reviewer.md                    | Markdown         |         23 |          0 |          6 |         29 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/context-manager.md                  | Markdown         |         44 |          0 |         20 |         64 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/data-engineer.md                    | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/data-scientist.md                   | Markdown         |         23 |          0 |          6 |         29 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/database-admin.md                   | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/database-optimizer.md               | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/debugger.md                         | Markdown         |         24 |          0 |          6 |         30 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/deployment-engineer.md              | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/devops-troubleshooter.md            | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/frontend-developer.md               | Markdown         |         25 |          0 |          6 |         31 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/javascript-pro.md                   | Markdown         |         26 |          0 |          9 |         35 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/prompt-engineer.md                  | Markdown         |         43 |          0 |         16 |         59 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/python-pro.md                       | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/risk-manager.md                     | Markdown         |         32 |          0 |          9 |         41 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/search-specialist.md                | Markdown         |         43 |          0 |         16 |         59 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/security-auditor.md                 | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/sql-pro.md                          | Markdown         |         26 |          0 |          9 |         35 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/agents/test-automator.md                   | Markdown         |         26 |          0 |          6 |         32 |
+| /Users/joecorella/Desktop/ScraperV4/.claude/settings.local.json                        | JSON             |         39 |          0 |          0 |         39 |
+| /Users/joecorella/Desktop/ScraperV4/CLAUDE.md                                          | Markdown         |         49 |          0 |          7 |         56 |
+| /Users/joecorella/Desktop/ScraperV4/INTEGRATION_REPORT.md                              | Markdown         |         90 |          0 |         30 |        120 |
+| /Users/joecorella/Desktop/ScraperV4/README.md                                          | Markdown         |        389 |          0 |         87 |        476 |
+| /Users/joecorella/Desktop/ScraperV4/debug_frontend.html                                | HTML             |         42 |          0 |          5 |         47 |
+| /Users/joecorella/Desktop/ScraperV4/docs/README.md                                     | Markdown         |        930 |          0 |        173 |      1,103 |
+| /Users/joecorella/Desktop/ScraperV4/prompts/phase1a_environment_setup.md               | Markdown         |        347 |          0 |         73 |        420 |
+| /Users/joecorella/Desktop/ScraperV4/prompts/phase1b_project_structure.md               | Markdown         |        562 |          0 |        143 |        705 |
+| /Users/joecorella/Desktop/ScraperV4/prompts/phase1c_eel_application_architecture.md    | Markdown         |      1,348 |         17 |        200 |      1,565 |
+| /Users/joecorella/Desktop/ScraperV4/prompts/phase2_core_backend_development.md         | Markdown         |      1,147 |          0 |        271 |      1,418 |
+| /Users/joecorella/Desktop/ScraperV4/prompts/phase3_frontend_development.md             | Markdown         |      1,457 |          0 |        255 |      1,712 |
+| /Users/joecorella/Desktop/ScraperV4/requirements.txt                                   | pip requirements |         17 |          4 |          3 |         24 |
+| /Users/joecorella/Desktop/ScraperV4/src/__init__.py                                    | Python           |          0 |          0 |          1 |          1 |
+| /Users/joecorella/Desktop/ScraperV4/src/core/__init__.py                               | Python           |          0 |          0 |          1 |          1 |
+| /Users/joecorella/Desktop/ScraperV4/src/core/config.py                                 | Python           |         58 |         10 |         12 |         80 |
+| /Users/joecorella/Desktop/ScraperV4/src/core/container.py                              | Python           |         38 |         11 |         13 |         62 |
+| /Users/joecorella/Desktop/ScraperV4/src/data/__init__.py                               | Python           |          4 |          1 |          2 |          7 |
+| /Users/joecorella/Desktop/ScraperV4/src/data/job_manager.py                            | Python           |         83 |          9 |         16 |        108 |
+| /Users/joecorella/Desktop/ScraperV4/src/data/result_storage.py                         | Python           |        127 |         13 |         24 |        164 |
+| /Users/joecorella/Desktop/ScraperV4/src/data/template_manager.py                       | Python           |        103 |         11 |         23 |        137 |
+| /Users/joecorella/Desktop/ScraperV4/src/main.py                                        | Python           |         35 |          6 |         11 |         52 |
+| /Users/joecorella/Desktop/ScraperV4/src/scrapers/__init__.py                           | Python           |          4 |          1 |          2 |          7 |
+| /Users/joecorella/Desktop/ScraperV4/src/scrapers/base_scraper.py                       | Python           |        227 |        133 |         53 |        413 |
+| /Users/joecorella/Desktop/ScraperV4/src/scrapers/fetcher_manager.py                    | Python           |        209 |        136 |         53 |        398 |
+| /Users/joecorella/Desktop/ScraperV4/src/scrapers/proxy_rotator.py                      | Python           |        188 |         72 |         48 |        308 |
+| /Users/joecorella/Desktop/ScraperV4/src/scrapers/stealth_fetcher.py                    | Python           |        213 |         45 |         55 |        313 |
+| /Users/joecorella/Desktop/ScraperV4/src/scrapers/template_scraper.py                   | Python           |        440 |        146 |        114 |        700 |
+| /Users/joecorella/Desktop/ScraperV4/src/services/__init__.py                           | Python           |          4 |          1 |          2 |          7 |
+| /Users/joecorella/Desktop/ScraperV4/src/services/base_service.py                       | Python           |         15 |          3 |          4 |         22 |
+| /Users/joecorella/Desktop/ScraperV4/src/services/data_service.py                       | Python           |        224 |         65 |         52 |        341 |
+| /Users/joecorella/Desktop/ScraperV4/src/services/scraping_service.py                   | Python           |        636 |        110 |        106 |        852 |
+| /Users/joecorella/Desktop/ScraperV4/src/services/template_service.py                   | Python           |        124 |         21 |         35 |        180 |
+| /Users/joecorella/Desktop/ScraperV4/src/templates/__init__.py                          | Python           |          4 |          1 |          2 |          7 |
+| /Users/joecorella/Desktop/ScraperV4/src/templates/adaptive_selector.py                 | Python           |        238 |         50 |         56 |        344 |
+| /Users/joecorella/Desktop/ScraperV4/src/templates/template_manager.py                  | Python           |        127 |         21 |         39 |        187 |
+| /Users/joecorella/Desktop/ScraperV4/src/templates/template_validator.py                | Python           |        166 |         35 |         58 |        259 |
+| /Users/joecorella/Desktop/ScraperV4/src/utils/__init__.py                              | Python           |          8 |          1 |          2 |         11 |
+| /Users/joecorella/Desktop/ScraperV4/src/utils/data_utils.py                            | Python           |        246 |         55 |         77 |        378 |
+| /Users/joecorella/Desktop/ScraperV4/src/utils/logging_utils.py                         | Python           |         73 |         12 |         23 |        108 |
+| /Users/joecorella/Desktop/ScraperV4/src/utils/validation_utils.py                      | Python           |        356 |         70 |         69 |        495 |
+| /Users/joecorella/Desktop/ScraperV4/src/web/__init__.py                                | Python           |          3 |          1 |          2 |          6 |
+| /Users/joecorella/Desktop/ScraperV4/src/web/api_routes.py                              | Python           |        408 |         35 |         70 |        513 |
+| /Users/joecorella/Desktop/ScraperV4/src/web/eel_app.py                                 | Python           |         24 |          8 |          9 |         41 |
+| /Users/joecorella/Desktop/ScraperV4/templates/Wdijwdi.json                             | JSON             |         18 |          0 |          0 |         18 |
+| /Users/joecorella/Desktop/ScraperV4/templates/example_advanced_template.json           | JSON             |        171 |          0 |          9 |        180 |
+| /Users/joecorella/Desktop/ScraperV4/test_templates.py                                  | Python           |         27 |          5 |         10 |         42 |
+| /Users/joecorella/Desktop/ScraperV4/tests/README_comprehensive_tests.md                | Markdown         |         87 |          0 |         26 |        113 |
+| /Users/joecorella/Desktop/ScraperV4/tests/__init__.py                                  | Python           |          8 |          4 |          5 |         17 |
+| /Users/joecorella/Desktop/ScraperV4/tests/conftest.py                                  | Python           |        332 |         27 |         42 |        401 |
+| /Users/joecorella/Desktop/ScraperV4/tests/integration/test_css_selector_integration.py | Python           |        485 |        106 |        133 |        724 |
+| /Users/joecorella/Desktop/ScraperV4/tests/integration/test_preview_integration.py      | Python           |        275 |         34 |         46 |        355 |
+| /Users/joecorella/Desktop/ScraperV4/tests/integration/test_service_integration.py      | Python           |        190 |         42 |         62 |        294 |
+| /Users/joecorella/Desktop/ScraperV4/tests/test_async_scraping.py                       | Python           |        306 |         53 |         96 |        455 |
+| /Users/joecorella/Desktop/ScraperV4/tests/test_data_service_security.py                | Python           |        110 |         24 |         24 |        158 |
+| /Users/joecorella/Desktop/ScraperV4/tests/test_scraping_preview.py                     | Python           |        156 |         24 |         38 |        218 |
+| /Users/joecorella/Desktop/ScraperV4/tests/test_scrapling_comprehensive.py              | Python           |        316 |         80 |         92 |        488 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/README_test_summary.md                  | Markdown         |        118 |          0 |         29 |        147 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/__init__.py                             | Python           |          8 |          4 |          5 |         17 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/test_css_selector_extraction.py         | Python           |        202 |         48 |         74 |        324 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/test_excel_export.py                    | Python           |        175 |         34 |         57 |        266 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/test_preview_frontend_integration.py    | Python           |        335 |         56 |         76 |        467 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/test_preview_scraping.py                | Python           |        609 |         67 |        173 |        849 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/test_selector_validation.py             | Python           |        154 |         20 |         35 |        209 |
+| /Users/joecorella/Desktop/ScraperV4/tests/unit/test_template_scraping.py               | Python           |        789 |        146 |        253 |      1,188 |
+| /Users/joecorella/Desktop/ScraperV4/web/debug.html                                     | HTML             |         42 |          0 |          5 |         47 |
+| /Users/joecorella/Desktop/ScraperV4/web/index.html                                     | HTML             |        196 |         17 |         17 |        230 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/css/components/progress-monitor.css     | PostCSS          |        513 |         16 |         94 |        623 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/css/components/results-table.css        | PostCSS          |        508 |         11 |         98 |        617 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/css/components/scraping-form.css        | PostCSS          |        381 |         11 |         67 |        459 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/css/main.css                            | PostCSS          |      1,062 |         24 |        156 |      1,242 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/api.js                               | JavaScript       |        190 |         15 |         24 |        229 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/app.js                               | JavaScript       |        376 |         28 |         61 |        465 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/components/progress-monitor.js       | JavaScript       |        304 |         49 |         62 |        415 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/components/results-table.js          | JavaScript       |        565 |         39 |         97 |        701 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/components/scraping-form.js          | JavaScript       |        494 |         46 |         92 |        632 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/components/template-manager.js       | JavaScript       |      1,591 |         68 |        191 |      1,850 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/utils/helpers.js                     | JavaScript       |        295 |        125 |         51 |        471 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/utils/logger.js                      | JavaScript       |        143 |         19 |         30 |        192 |
+| /Users/joecorella/Desktop/ScraperV4/web/static/js/utils/notifications.js               | JavaScript       |        308 |         31 |         29 |        368 |
+| Total                                                                                  |                  |     23,265 |      2,377 |      4,821 |     30,463 |
++----------------------------------------------------------------------------------------+------------------+------------+------------+------------+------------+

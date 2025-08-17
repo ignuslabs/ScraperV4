@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ScraperV4 - Professional Web Scraping</title>
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="static/css/main.css">
+    <link rel="stylesheet" href="static/css/components/scraping-form.css">
+    <link rel="stylesheet" href="static/css/components/results-table.css">
+    <link rel="stylesheet" href="static/css/components/progress-monitor.css">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-spider"></i>
+                    <h1>ScraperV4</h1>
+                </div>
+                <nav class="nav-menu">
+                    <button class="nav-btn active" data-page="scraping">
+                        <i class="fas fa-search"></i>
+                        Scraping
+                    </button>
+                    <button class="nav-btn" data-page="templates">
+                        <i class="fas fa-file-code"></i>
+                        Templates
+                    </button>
+                    <button class="nav-btn" data-page="results">
+                        <i class="fas fa-table"></i>
+                        Results
+                    </button>
+                    <button class="nav-btn" data-page="settings">
+                        <i class="fas fa-cog"></i>
+                        Settings
+                    </button>
+                </nav>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Scraping Page -->
+            <div id="scraping-page" class="page active">
+                <div class="page-header">
+                    <h2>New Scraping Job</h2>
+                    <button id="quick-start-btn" class="btn btn-secondary">
+                        <i class="fas fa-bolt"></i>
+                        Quick Start
+                    </button>
+                </div>
+                
+                <div class="content-grid">
+                    <div class="form-section">
+                        <form id="scraping-form" class="scraping-form">
+                            <div class="form-group">
+                                <label for="job-name">Job Name</label>
+                                <input type="text" id="job-name" name="jobName" required 
+                                       placeholder="Enter a descriptive name">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="target-url">Target URL</label>
+                                <input type="url" id="target-url" name="targetUrl" required 
+                                       placeholder="https://example.com">
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="template-select">Scraping Template</label>
+                                <select id="template-select" name="templateId" required>
+                                    <option value="">Select a template...</option>
+                                </select>
+                                <button type="button" id="create-template-btn" class="btn btn-link">
+                                    Create New Template
+                                </button>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>Advanced Options</label>
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="stealth-mode" name="stealthMode" checked>
+                                        <span class="checkmark"></span>
+                                        Enable Stealth Mode
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="auto-retry" name="autoRetry" checked>
+                                        <span class="checkmark"></span>
+                                        Auto Retry on Failure
+                                    </label>
+                                </div>
+                            </div>
+                            
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary" id="start-scraping-btn">
+                                    <i class="fas fa-play"></i>
+                                    Start Scraping
+                                </button>
+                                <button type="button" class="btn btn-secondary" id="preview-btn">
+                                    <i class="fas fa-eye"></i>
+                                    Preview
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                    
+                    <div class="monitor-section">
+                        <div id="progress-monitor" class="progress-monitor">
+                            <h3>Progress Monitor</h3>
+                            <div class="monitor-content">
+                                <div class="status-display">
+                                    <span class="status-indicator idle"></span>
+                                    <span class="status-text">Ready to start</span>
+                                </div>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 0%"></div>
+                                        <span class="progress-text">0%</span>
+                                    </div>
+                                </div>
+                                <div class="stats-grid">
+                                    <div class="stat-item">
+                                        <span class="stat-label">Items Scraped</span>
+                                        <span class="stat-value" id="items-scraped">0</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Success Rate</span>
+                                        <span class="stat-value" id="success-rate">0%</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-label">Elapsed Time</span>
+                                        <span class="stat-value" id="elapsed-time">00:00</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="live-logs" class="live-logs">
+                            <h3>Live Logs</h3>
+                            <div class="logs-content">
+                                <div class="log-entry">
+                                    <span class="log-time">Ready</span>
+                                    <span class="log-message">ScraperV4 initialized and ready</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Templates Page -->
+            <div id="templates-page" class="page">
+                <div class="page-header">
+                    <h2>Scraping Templates</h2>
+                    <button id="new-template-btn" class="btn btn-primary">
+                        <i class="fas fa-plus"></i>
+                        New Template
+                    </button>
+                </div>
+                <div id="templates-grid" class="templates-grid">
+                    <!-- Templates will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Results Page -->
+            <div id="results-page" class="page">
+                <div class="page-header">
+                    <h2>Scraping Results</h2>
+                    <div class="page-actions">
+                        <button id="export-results-btn" class="btn btn-secondary">
+                            <i class="fas fa-download"></i>
+                            Export
+                        </button>
+                        <button id="clear-results-btn" class="btn btn-danger">
+                            <i class="fas fa-trash"></i>
+                            Clear All
+                        </button>
+                    </div>
+                </div>
+                <div id="results-table-container" class="results-table-container">
+                    <!-- Results table will be populated dynamically -->
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+                <div class="page-header">
+                    <h2>Settings</h2>
+                </div>
+                <div class="settings-content">
+                    <!-- Settings form will be populated dynamically -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Notifications -->
+        <div id="notifications-container" class="notifications-container">
+            <!-- Notifications will be populated dynamically -->
+        </div>
+
+        <!-- Modals -->
+        <div id="modal-overlay" class="modal-overlay">
+            <div id="modal-content" class="modal-content">
+                <!-- Modal content will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script src="/eel.js"></script>
+    <script src="static/js/utils/logger.js"></script>
+    <script src="static/js/utils/helpers.js"></script>
+    <script src="static/js/utils/notifications.js"></script>
+    <script src="static/js/api.js"></script>
+    <script src="static/js/components/scraping-form.js"></script>
+    <script src="static/js/components/progress-monitor.js"></script>
+    <script src="static/js/components/results-table.js"></script>
+    <script src="static/js/components/template-manager.js"></script>
+    <script src="static/js/app.js"></script>
+</body>
+</html>

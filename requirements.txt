@@ -1,0 +1,24 @@
+# Install core scraping and web framework dependencies
+scrapling
+eel
+
+# Install data processing and utilities
+pandas
+requests
+bs4 # from bs4 import BeautifulSoup
+lxml
+openpyxl
+
+# Install development and testing dependencies
+pytest
+pytest-asyncio
+ pytest-cov
+ black
+ flake8
+ mypy
+
+# Install additional utilities
+python-dotenv
+click
+rich
+pydantic

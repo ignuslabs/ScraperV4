@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Frontend</title>
+</head>
+<body>
+    <h1>Template Debug Test</h1>
+    <button onclick="testTemplates()">Test Get Templates</button>
+    <button onclick="testTemplate()">Test Get Template (ID: test_template)</button>
+    <div id="results"></div>
+    
+    <script src="/eel.js"></script>
+    <script>
+        async function testTemplates() {
+            console.log('Testing get_templates...');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                const response = await eel.get_templates()();
+                console.log('Response:', response);
+                resultsDiv.innerHTML = '<pre>' + JSON.stringify(response, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = '<p style="color: red;">Error: ' + error + '</p>';
+            }
+        }
+        
+        async function testTemplate() {
+            console.log('Testing get_template...');
+            const resultsDiv = document.getElementById('results');
+            
+            try {
+                const response = await eel.get_template('test_template')();
+                console.log('Response:', response);
+                resultsDiv.innerHTML = '<pre>' + JSON.stringify(response, null, 2) + '</pre>';
+            } catch (error) {
+                console.error('Error:', error);
+                resultsDiv.innerHTML = '<p style="color: red;">Error: ' + error + '</p>';
+            }
+        }
+        
+        // Test connection
+        console.log('eel object:', eel);
+        console.log('eel.get_templates:', eel.get_templates);
+    </script>
+</body>
+</html>
