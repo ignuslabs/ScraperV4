@@ -1,0 +1,346 @@
+{
+  "name": "E-commerce Product Scraper",
+  "description": "Advanced template for scraping product information from e-commerce websites",
+  "version": "1.0",
+  "config": {
+    "fetcher": {
+      "type": "stealth",
+      "stealth_options": {
+        "user_agent_rotation": true,
+        "viewport_randomization": true,
+        "webdriver_spoofing": true,
+        "canvas_fingerprint_spoofing": true,
+        "webgl_fingerprint_spoofing": true
+      },
+      "headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate, br",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1"
+      },
+      "proxies": {
+        "enabled": true,
+        "rotation_strategy": "random",
+        "retry_on_failure": true,
+        "max_retries": 3
+      },
+      "timing": {
+        "min_delay": 2000,
+        "max_delay": 5000,
+        "page_load_timeout": 30000,
+        "element_timeout": 10000
+      }
+    },
+    "selectors": {
+      "product": {
+        "css": ".product-item, .product-card, [data-testid*='product']",
+        "multiple": true,
+        "validation": {
+          "required_fields": ["name", "price"],
+          "min_items": 1
+        },
+        "fields": {
+          "name": {
+            "css": "h1, h2, h3, .product-title, .product-name, [data-testid*='title']",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "trim"
+              },
+              {
+                "type": "regex_replace",
+                "pattern": "\\s+",
+                "replacement": " "
+              }
+            ],
+            "validation": {
+              "min_length": 3,
+              "max_length": 200
+            }
+          },
+          "price": {
+            "css": ".price, .product-price, [data-testid*='price'], .price-current",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "regex_extract",
+                "pattern": "([0-9,]+\\.?[0-9]*)"
+              },
+              {
+                "type": "replace",
+                "old": ",",
+                "new": ""
+              },
+              {
+                "type": "cast",
+                "target_type": "float"
+              }
+            ],
+            "validation": {
+              "type": "number",
+              "min": 0
+            }
+          },
+          "original_price": {
+            "css": ".original-price, .was-price, .price-old, .strikethrough",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "regex_extract",
+                "pattern": "([0-9,]+\\.?[0-9]*)"
+              },
+              {
+                "type": "replace",
+                "old": ",",
+                "new": ""
+              },
+              {
+                "type": "cast",
+                "target_type": "float"
+              }
+            ],
+            "optional": true
+          },
+          "discount_percentage": {
+            "css": ".discount, .save-percent, .percentage-off",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "regex_extract",
+                "pattern": "([0-9]+)%?"
+              },
+              {
+                "type": "cast",
+                "target_type": "integer"
+              }
+            ],
+            "optional": true
+          },
+          "rating": {
+            "css": ".rating, .stars, [data-testid*='rating']",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "regex_extract",
+                "pattern": "([0-9]+\\.?[0-9]*)"
+              },
+              {
+                "type": "cast",
+                "target_type": "float"
+              }
+            ],
+            "validation": {
+              "type": "number",
+              "min": 0,
+              "max": 5
+            },
+            "optional": true
+          },
+          "review_count": {
+            "css": ".review-count, .reviews, [data-testid*='review']",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "regex_extract",
+                "pattern": "([0-9,]+)"
+              },
+              {
+                "type": "replace",
+                "old": ",",
+                "new": ""
+              },
+              {
+                "type": "cast",
+                "target_type": "integer"
+              }
+            ],
+            "optional": true
+          },
+          "image_url": {
+            "css": ".product-image img, .main-image img, [data-testid*='image'] img",
+            "attribute": "src",
+            "post_processing": [
+              {
+                "type": "url_resolve"
+              }
+            ],
+            "validation": {
+              "type": "url"
+            },
+            "optional": true
+          },
+          "product_url": {
+            "css": "a[href*='/product'], a[href*='/item'], .product-link",
+            "attribute": "href",
+            "post_processing": [
+              {
+                "type": "url_resolve"
+              }
+            ],
+            "validation": {
+              "type": "url"
+            },
+            "optional": true
+          },
+          "availability": {
+            "css": ".availability, .stock-status, .in-stock, .out-of-stock",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "trim"
+              },
+              {
+                "type": "lowercase"
+              }
+            ],
+            "optional": true
+          },
+          "brand": {
+            "css": ".brand, .manufacturer, [data-testid*='brand']",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "trim"
+              }
+            ],
+            "optional": true
+          },
+          "category": {
+            "css": ".category, .breadcrumb a:last-child, [data-testid*='category']",
+            "attribute": "text",
+            "optional": true
+          },
+          "description": {
+            "css": ".description, .product-description, .summary",
+            "attribute": "text",
+            "post_processing": [
+              {
+                "type": "trim"
+              },
+              {
+                "type": "truncate",
+                "max_length": 500
+              }
+            ],
+            "optional": true
+          },
+          "features": {
+            "css": ".features li, .specifications li, .product-features li",
+            "multiple": true,
+            "attribute": "text",
+            "optional": true
+          },
+          "shipping_info": {
+            "css": ".shipping, .delivery-info, [data-testid*='shipping']",
+            "attribute": "text",
+            "optional": true
+          }
+        }
+      }
+    },
+    "pagination": {
+      "enabled": true,
+      "strategy": "link_based",
+      "next_page_selector": ".next, .pagination-next, [aria-label*='next'], .pager-next",
+      "max_pages": 50,
+      "delay_between_pages": 3000,
+      "stop_conditions": [
+        {
+          "type": "no_new_items",
+          "threshold": 2
+        },
+        {
+          "type": "duplicate_threshold",
+          "percentage": 80
+        }
+      ]
+    },
+    "data_processing": {
+      "deduplication": {
+        "enabled": true,
+        "key_fields": ["name", "product_url"],
+        "similarity_threshold": 0.9
+      },
+      "quality_filters": [
+        {
+          "field": "price",
+          "condition": "greater_than",
+          "value": 0
+        },
+        {
+          "field": "name",
+          "condition": "min_length",
+          "value": 3
+        }
+      ],
+      "enrichment": [
+        {
+          "type": "calculate_discount",
+          "original_price_field": "original_price",
+          "current_price_field": "price",
+          "output_field": "calculated_discount"
+        },
+        {
+          "type": "add_timestamp",
+          "field": "scraped_at"
+        },
+        {
+          "type": "add_source_url",
+          "field": "source_page"
+        }
+      ]
+    },
+    "error_handling": {
+      "retry_on_failure": true,
+      "max_retries": 3,
+      "retry_delay": 5000,
+      "fallback_selectors": {
+        "name": [
+          ".title",
+          "h1",
+          "[data-product-name]"
+        ],
+        "price": [
+          ".cost",
+          ".amount",
+          "[data-price]"
+        ]
+      },
+      "ignore_missing_optional": true
+    },
+    "export_options": {
+      "formats": ["json", "csv", "xlsx"],
+      "filename_template": "ecommerce_products_{timestamp}",
+      "include_metadata": true,
+      "custom_fields": {
+        "scraping_session": "{{session_id}}",
+        "site_domain": "{{domain}}",
+        "total_pages_scraped": "{{pages_count}}"
+      }
+    }
+  },
+  "metadata": {
+    "author": "ScraperV4 Team",
+    "created_at": "2024-01-15T10:00:00Z",
+    "updated_at": "2024-01-15T10:00:00Z",
+    "tags": ["ecommerce", "products", "pricing", "advanced"],
+    "compatibility": {
+      "scraperv4_version": ">=4.0.0",
+      "sites_tested": [
+        "amazon.com",
+        "ebay.com",
+        "shopify.com",
+        "woocommerce.com"
+      ]
+    },
+    "usage_notes": [
+      "This template uses stealth mode to avoid detection",
+      "Pagination is automatic up to 50 pages",
+      "Includes data quality validation and deduplication",
+      "Handles multiple e-commerce site layouts",
+      "Respects rate limiting with configurable delays"
+    ]
+  }
+}

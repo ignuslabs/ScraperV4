@@ -1,0 +1,651 @@
+{
+  "name": "multi_site_monitoring_template",
+  "description": "Advanced template for monitoring multiple websites with change detection and alerting",
+  "version": "3.0.0",
+  "category": "monitoring",
+  
+  "fetcher_config": {
+    "type": "auto",
+    "basic": {
+      "timeout": 30,
+      "follow_redirects": true,
+      "max_redirects": 3,
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (compatible; ScraperV4-Monitor/3.0; +https://example.com/bot)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1",
+        "Cache-Control": "no-cache"
+      }
+    },
+    "stealth": {
+      "headless": true,
+      "humanize": false,
+      "block_webrtc": false,
+      "spoof_canvas": false,
+      "os_randomization": false,
+      "network_idle": true,
+      "wait_for_selector": "body",
+      "google_search": false,
+      "disable_ads": true,
+      "minimal_profile": true
+    },
+    "monitoring_specific": {
+      "etag_support": true,
+      "last_modified_support": true,
+      "content_hash_comparison": true,
+      "response_time_tracking": true,
+      "status_code_monitoring": true
+    }
+  },
+  
+  "requirements": {
+    "javascript_required": false,
+    "stealth_required": false,
+    "anti_bot_protection": false,
+    "concurrent_scraping": true,
+    "session_management": false,
+    "cookie_handling": false,
+    "change_detection": true,
+    "scheduled_execution": true
+  },
+  
+  "monitoring_config": {
+    "change_detection": {
+      "enabled": true,
+      "methods": ["content_hash", "text_diff", "element_count", "visual_diff"],
+      "sensitivity": "medium",
+      "ignore_patterns": [
+        "timestamp",
+        "current_time",
+        "random_id",
+        "csrf_token",
+        "session_id",
+        "advertisement"
+      ]
+    },
+    "scheduling": {
+      "default_interval": "15m",
+      "adaptive_scheduling": true,
+      "priority_sites": ["high", "medium", "low"],
+      "rate_limiting": {
+        "requests_per_minute": 30,
+        "concurrent_sites": 5
+      }
+    },
+    "alerting": {
+      "enabled": true,
+      "methods": ["webhook", "email", "slack"],
+      "thresholds": {
+        "content_change": 0.1,
+        "response_time_increase": 2.0,
+        "availability_failure": 1
+      }
+    }
+  },
+  
+  "selectors": {
+    "page_title": {
+      "selector": "title, h1, .page-title, .main-title",
+      "type": "text",
+      "auto_save": true,
+      "priority": 1,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "high"
+      },
+      "fallback_selectors": [
+        "head title",
+        ".title",
+        ".heading",
+        "[data-testid='title']"
+      ]
+    },
+    
+    "main_content": {
+      "selector": ".main-content, .content, #content, main, .article-content",
+      "type": "text",
+      "auto_save": true,
+      "priority": 1,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "medium",
+        "ignore_whitespace": true,
+        "ignore_case": false
+      },
+      "fallback_selectors": [
+        ".page-content",
+        ".body-content",
+        ".primary-content",
+        "[role='main']"
+      ],
+      "content_filters": {
+        "remove_ads": true,
+        "remove_navigation": true,
+        "remove_footer": true,
+        "preserve_structure": true
+      }
+    },
+    
+    "price_information": {
+      "selector": ".price, .cost, .amount, [data-testid='price']",
+      "type": "text",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "high",
+        "threshold": 0.01
+      },
+      "fallback_selectors": [
+        ".price-current",
+        ".selling-price",
+        ".product-price",
+        ".value"
+      ],
+      "validation": {
+        "numeric_extraction": true,
+        "currency_detection": true,
+        "range_validation": [0, 999999]
+      }
+    },
+    
+    "availability_status": {
+      "selector": ".availability, .stock-status, .in-stock, .out-of-stock",
+      "type": "text",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "high"
+      },
+      "fallback_selectors": [
+        ".inventory-status",
+        ".product-availability",
+        ".stock-info"
+      ],
+      "normalization": {
+        "status_mapping": {
+          "available": "in_stock",
+          "in stock": "in_stock",
+          "out of stock": "out_of_stock",
+          "unavailable": "out_of_stock"
+        }
+      }
+    },
+    
+    "news_headlines": {
+      "selector": ".headline, .news-title, .article-title, h2, h3",
+      "type": "all",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "medium",
+        "track_additions": true,
+        "track_removals": true
+      },
+      "fallback_selectors": [
+        ".story-headline",
+        ".post-title",
+        ".entry-title"
+      ],
+      "content_analysis": {
+        "keyword_tracking": ["breaking", "urgent", "alert", "update"],
+        "sentiment_analysis": false,
+        "duplicate_detection": true
+      }
+    },
+    
+    "contact_information": {
+      "selector": ".contact, .phone, .email, .address",
+      "type": "multiple",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "high"
+      },
+      "sub_selectors": {
+        "phone_numbers": {
+          "selector": ".phone, [href^='tel:'], .telephone",
+          "type": "text",
+          "validation": {
+            "phone_format_validation": true
+          }
+        },
+        "email_addresses": {
+          "selector": ".email, [href^='mailto:'], .email-address",
+          "type": "text",
+          "validation": {
+            "email_format_validation": true
+          }
+        },
+        "physical_address": {
+          "selector": ".address, .location, .street-address",
+          "type": "text"
+        }
+      }
+    },
+    
+    "error_indicators": {
+      "selector": ".error, .404, .not-found, .maintenance, .down",
+      "type": "presence",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "high",
+        "immediate_alert": true
+      },
+      "fallback_selectors": [
+        ".error-page",
+        ".service-unavailable",
+        ".under-construction"
+      ]
+    },
+    
+    "form_availability": {
+      "selector": "form, .form, .contact-form, .signup-form",
+      "type": "multiple",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "medium"
+      },
+      "sub_selectors": {
+        "input_fields": {
+          "selector": "input, textarea, select",
+          "type": "count"
+        },
+        "submit_buttons": {
+          "selector": "button[type='submit'], input[type='submit']",
+          "type": "count"
+        },
+        "required_fields": {
+          "selector": "[required], .required",
+          "type": "count"
+        }
+      }
+    },
+    
+    "social_media_links": {
+      "selector": "a[href*='facebook'], a[href*='twitter'], a[href*='instagram'], a[href*='linkedin']",
+      "type": "all",
+      "auto_save": true,
+      "attribute": "href",
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": false,
+        "sensitivity": "low"
+      },
+      "validation": {
+        "url_validation": true,
+        "social_platform_validation": true
+      }
+    },
+    
+    "meta_information": {
+      "selector": "meta",
+      "type": "multiple",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": false,
+        "sensitivity": "low"
+      },
+      "sub_selectors": {
+        "description": {
+          "selector": "meta[name='description']",
+          "type": "attribute",
+          "attribute": "content"
+        },
+        "keywords": {
+          "selector": "meta[name='keywords']",
+          "type": "attribute",
+          "attribute": "content"
+        },
+        "author": {
+          "selector": "meta[name='author']",
+          "type": "attribute",
+          "attribute": "content"
+        },
+        "last_modified": {
+          "selector": "meta[name='last-modified']",
+          "type": "attribute",
+          "attribute": "content"
+        }
+      }
+    },
+    
+    "performance_indicators": {
+      "selector": ".loading, .spinner, .progress",
+      "type": "presence",
+      "auto_save": true,
+      "change_tracking": {
+        "enabled": true,
+        "alert_on_change": true,
+        "sensitivity": "medium"
+      },
+      "timeout_detection": {
+        "max_wait_time": 30,
+        "alert_on_timeout": true
+      }
+    }
+  },
+  
+  "pagination": {
+    "enabled": false,
+    "single_page_monitoring": true,
+    "deep_link_monitoring": {
+      "enabled": true,
+      "max_depth": 2,
+      "follow_internal_links": true,
+      "exclude_patterns": [
+        "/admin/",
+        "/login/",
+        "/logout/",
+        "/search?",
+        "javascript:",
+        "mailto:",
+        "tel:"
+      ]
+    }
+  },
+  
+  "post_processing": [
+    {
+      "type": "normalize_content",
+      "field": "main_content",
+      "params": {
+        "remove_extra_whitespace": true,
+        "normalize_line_endings": true,
+        "remove_html_comments": true,
+        "preserve_structure": true
+      }
+    },
+    {
+      "type": "extract_changes",
+      "params": {
+        "comparison_method": "diff",
+        "change_threshold": 0.1,
+        "highlight_changes": true,
+        "track_additions": true,
+        "track_deletions": true,
+        "track_modifications": true
+      }
+    },
+    {
+      "type": "calculate_content_hash",
+      "field": "main_content",
+      "output_field": "content_hash",
+      "params": {
+        "hash_algorithm": "sha256",
+        "normalize_before_hash": true
+      }
+    },
+    {
+      "type": "extract_contact_info",
+      "field": "main_content",
+      "output_field": "extracted_contacts",
+      "params": {
+        "extract_emails": true,
+        "extract_phones": true,
+        "extract_addresses": false
+      }
+    },
+    {
+      "type": "analyze_page_structure",
+      "output_field": "page_structure_analysis",
+      "params": {
+        "count_elements": true,
+        "analyze_depth": true,
+        "detect_frameworks": true
+      }
+    },
+    {
+      "type": "performance_metrics",
+      "output_field": "performance_data",
+      "params": {
+        "response_time": true,
+        "content_size": true,
+        "resource_count": false,
+        "load_time": true
+      }
+    },
+    {
+      "type": "validate_links",
+      "field": "social_media_links",
+      "output_field": "link_validation_results",
+      "params": {
+        "check_accessibility": false,
+        "validate_format": true,
+        "categorize_links": true
+      }
+    }
+  ],
+  
+  "validation_rules": {
+    "required_fields": ["page_title"],
+    "field_types": {
+      "page_title": "string",
+      "main_content": "string",
+      "price_information": "string",
+      "availability_status": "string",
+      "news_headlines": "list",
+      "contact_information": "object",
+      "error_indicators": "boolean",
+      "form_availability": "object",
+      "social_media_links": "list",
+      "meta_information": "object",
+      "performance_indicators": "boolean"
+    },
+    "monitoring_validation": {
+      "content_completeness": {
+        "min_content_length": 50,
+        "required_elements_present": true,
+        "no_error_indicators": true
+      },
+      "change_detection_validation": {
+        "meaningful_changes_only": true,
+        "ignore_dynamic_content": true,
+        "timestamp_change_filtering": true
+      },
+      "performance_validation": {
+        "response_time_reasonable": true,
+        "content_size_reasonable": true,
+        "no_timeout_errors": true
+      }
+    }
+  },
+  
+  "change_detection": {
+    "algorithms": {
+      "content_hash": {
+        "enabled": true,
+        "weight": 0.4,
+        "algorithm": "sha256"
+      },
+      "text_similarity": {
+        "enabled": true,
+        "weight": 0.3,
+        "threshold": 0.95
+      },
+      "element_count": {
+        "enabled": true,
+        "weight": 0.2,
+        "tolerance": 0.05
+      },
+      "structure_analysis": {
+        "enabled": true,
+        "weight": 0.1,
+        "depth_limit": 3
+      }
+    },
+    "filtering": {
+      "ignore_timestamps": true,
+      "ignore_random_ids": true,
+      "ignore_session_tokens": true,
+      "ignore_advertisements": true,
+      "ignore_analytics_codes": true,
+      "custom_ignore_patterns": [
+        "\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}",
+        "sessionId=[a-zA-Z0-9]+",
+        "_ga=[a-zA-Z0-9]+",
+        "timestamp=\\d+"
+      ]
+    },
+    "notification": {
+      "immediate_alerts": ["error_indicators", "availability_status"],
+      "batched_alerts": ["news_headlines", "main_content"],
+      "suppressed_alerts": ["meta_information", "social_media_links"],
+      "alert_cooldown": "5m",
+      "duplicate_suppression": true
+    }
+  },
+  
+  "monitoring_metrics": {
+    "availability": {
+      "uptime_tracking": true,
+      "response_code_monitoring": true,
+      "timeout_detection": true,
+      "ssl_certificate_monitoring": false
+    },
+    "performance": {
+      "response_time_tracking": true,
+      "content_size_monitoring": true,
+      "load_time_analysis": true,
+      "performance_regression_detection": true
+    },
+    "content_quality": {
+      "broken_link_detection": false,
+      "image_availability_check": false,
+      "content_completeness_check": true,
+      "accessibility_basic_check": false
+    }
+  },
+  
+  "alerting_config": {
+    "webhook": {
+      "enabled": false,
+      "url": "",
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      },
+      "payload_template": {
+        "site": "{site_url}",
+        "change_type": "{change_type}",
+        "timestamp": "{timestamp}",
+        "details": "{change_details}"
+      }
+    },
+    "email": {
+      "enabled": false,
+      "smtp_config": {
+        "host": "",
+        "port": 587,
+        "username": "",
+        "password": "",
+        "tls": true
+      },
+      "template": {
+        "subject": "Site Change Detected: {site_url}",
+        "body": "Change detected on {site_url} at {timestamp}. Details: {change_details}"
+      }
+    },
+    "slack": {
+      "enabled": false,
+      "webhook_url": "",
+      "channel": "#monitoring",
+      "username": "ScraperV4-Monitor",
+      "icon_emoji": ":warning:"
+    }
+  },
+  
+  "scheduling": {
+    "cron_expression": "*/15 * * * *",
+    "adaptive_intervals": {
+      "enabled": true,
+      "high_change_sites": "*/5 * * * *",
+      "stable_sites": "0 */2 * * *",
+      "error_sites": "*/1 * * * *"
+    },
+    "priority_scheduling": {
+      "high_priority": "*/5 * * * *",
+      "medium_priority": "*/15 * * * *",
+      "low_priority": "0 * * * *"
+    }
+  },
+  
+  "error_handling": {
+    "network_errors": {
+      "timeout": "retry_with_longer_timeout",
+      "connection_refused": "mark_as_down",
+      "dns_error": "alert_and_retry_later",
+      "ssl_error": "attempt_insecure_fallback"
+    },
+    "content_errors": {
+      "empty_content": "alert_content_missing",
+      "malformed_html": "attempt_best_effort_parsing",
+      "encoding_errors": "try_alternative_encodings"
+    },
+    "change_detection_errors": {
+      "comparison_failure": "use_fallback_method",
+      "hash_calculation_error": "skip_hash_comparison",
+      "diff_timeout": "mark_as_significant_change"
+    }
+  },
+  
+  "data_retention": {
+    "historical_data": {
+      "keep_duration": "90d",
+      "compression": true,
+      "archive_old_data": true
+    },
+    "change_history": {
+      "keep_duration": "30d",
+      "max_changes_per_site": 1000,
+      "cleanup_policy": "oldest_first"
+    },
+    "performance_data": {
+      "keep_duration": "30d",
+      "aggregation": "daily_averages",
+      "retention_compression": true
+    }
+  },
+  
+  "adaptive_selectors": {
+    "enabled": true,
+    "learning_mode": true,
+    "similarity_threshold": 0.9,
+    "monitoring_adaptation": {
+      "selector_reliability_tracking": true,
+      "automatic_fallback": true,
+      "selector_performance_optimization": true
+    }
+  },
+  
+  "is_active": true,
+  "usage_count": 0,
+  "success_rate": 0.0,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "tags": ["monitoring", "change-detection", "alerting", "multi-site", "automation"],
+  "difficulty_level": "advanced",
+  "estimated_success_rate": 90,
+  "recommended_use_cases": [
+    "website_monitoring",
+    "price_tracking",
+    "content_change_detection",
+    "availability_monitoring",
+    "competitive_intelligence",
+    "news_monitoring",
+    "regulatory_compliance_monitoring"
+  ]
+}

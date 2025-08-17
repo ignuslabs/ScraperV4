@@ -1,0 +1,690 @@
+{
+  "name": "social_media_stealth_template",
+  "description": "Advanced stealth template for scraping social media platforms with anti-detection and rate limiting",
+  "version": "3.0.0",
+  "category": "social-media",
+  
+  "fetcher_config": {
+    "type": "stealth",
+    "stealth": {
+      "headless": true,
+      "humanize": true,
+      "block_webrtc": true,
+      "spoof_canvas": true,
+      "os_randomization": true,
+      "network_idle": true,
+      "wait_for_selector": "[data-testid='tweet'], .post, .content-item, article",
+      "google_search": false,
+      "disable_ads": true,
+      "advanced_evasion": {
+        "webgl_spoofing": true,
+        "audio_fingerprint_spoofing": true,
+        "font_fingerprint_protection": true,
+        "screen_resolution_randomization": true,
+        "timezone_spoofing": true,
+        "language_spoofing": false
+      },
+      "behavioral_mimicking": {
+        "human_like_scrolling": true,
+        "random_mouse_movements": true,
+        "typing_delays": true,
+        "reading_pauses": true,
+        "interaction_patterns": "authentic"
+      },
+      "session_management": {
+        "persistent_sessions": true,
+        "cookie_rotation": true,
+        "session_affinity": true,
+        "login_state_preservation": false
+      },
+      "rate_limiting": {
+        "requests_per_minute": 10,
+        "requests_per_hour": 300,
+        "burst_protection": true,
+        "adaptive_delays": true
+      }
+    },
+    "proxy_config": {
+      "required": true,
+      "rotation_frequency": "per_session",
+      "geographic_distribution": true,
+      "residential_proxies_preferred": true,
+      "sticky_sessions": true
+    }
+  },
+  
+  "requirements": {
+    "javascript_required": true,
+    "stealth_required": true,
+    "anti_bot_protection": true,
+    "concurrent_scraping": false,
+    "session_management": true,
+    "cookie_handling": true,
+    "rate_limiting": true,
+    "proxy_required": true,
+    "captcha_detection": true
+  },
+  
+  "platform_detection": {
+    "auto_detect": true,
+    "supported_platforms": ["twitter", "facebook", "instagram", "linkedin", "tiktok"],
+    "platform_specific_configs": {
+      "twitter": {
+        "api_endpoints_to_monitor": ["/i/api/graphql", "/i/api/2"],
+        "content_selectors": "[data-testid='tweet']",
+        "rate_limits": "strict"
+      },
+      "facebook": {
+        "content_selectors": "[data-pagelet='FeedUnit']",
+        "rate_limits": "moderate"
+      },
+      "instagram": {
+        "content_selectors": "article",
+        "rate_limits": "strict"
+      },
+      "linkedin": {
+        "content_selectors": ".feed-item",
+        "rate_limits": "moderate"
+      }
+    }
+  },
+  
+  "selectors": {
+    "post_content": {
+      "selector": "[data-testid='tweetText'], .post-message, .content-text, .user-post-message",
+      "type": "text",
+      "auto_save": true,
+      "priority": 1,
+      "wait_conditions": {
+        "wait_for_element": true,
+        "wait_for_visible": true,
+        "stability_timeout": 2000
+      },
+      "fallback_selectors": [
+        ".post-content",
+        ".message-body",
+        ".status-content",
+        "[data-testid='Post-Text']",
+        ".tweet-text"
+      ],
+      "platform_specific": {
+        "twitter": "[data-testid='tweetText']",
+        "facebook": "[data-testid='post_message']",
+        "instagram": ".C4VMK span",
+        "linkedin": ".feed-item-text"
+      },
+      "validation": {
+        "min_length": 1,
+        "max_length": 10000,
+        "required": true,
+        "content_filtering": {
+          "remove_mentions_links": false,
+          "preserve_hashtags": true,
+          "preserve_emojis": true
+        }
+      }
+    },
+    
+    "user_profile": {
+      "selector": "[data-testid='UserName'], .user-info, .profile-link, .author-info",
+      "type": "multiple",
+      "auto_save": true,
+      "sub_selectors": {
+        "username": {
+          "selector": "[data-testid='username'], .username, .handle, .screen-name",
+          "type": "text",
+          "platform_specific": {
+            "twitter": "[data-testid='username']",
+            "facebook": ".actor-name",
+            "instagram": ".username",
+            "linkedin": ".feed-item-author-name"
+          }
+        },
+        "display_name": {
+          "selector": "[data-testid='User-Name'], .display-name, .full-name, .real-name",
+          "type": "text",
+          "platform_specific": {
+            "twitter": "[data-testid='User-Name']",
+            "facebook": ".actor-name",
+            "instagram": ".display-name",
+            "linkedin": ".author-name"
+          }
+        },
+        "user_avatar": {
+          "selector": "[data-testid='Tweet-User-Avatar'] img, .avatar img, .profile-pic img",
+          "type": "attribute",
+          "attribute": "src",
+          "platform_specific": {
+            "twitter": "[data-testid='Tweet-User-Avatar'] img",
+            "facebook": ".actor-photo img",
+            "instagram": ".profile-pic img",
+            "linkedin": ".feed-item-author-image img"
+          }
+        },
+        "verification_status": {
+          "selector": "[data-testid='verificationBadge'], .verified-badge, .verification-icon",
+          "type": "presence",
+          "platform_specific": {
+            "twitter": "[data-testid='verificationBadge']",
+            "facebook": ".verified-badge",
+            "instagram": ".verified",
+            "linkedin": ".premium-badge"
+          }
+        },
+        "follower_count": {
+          "selector": ".follower-count, .followers-number, [data-testid='followers']",
+          "type": "text",
+          "validation": {
+            "numeric_extraction": true,
+            "handle_abbreviations": true
+          }
+        }
+      },
+      "validation": {
+        "required_fields": ["username"],
+        "username_format_validation": true,
+        "profile_completeness_check": true
+      }
+    },
+    
+    "engagement_metrics": {
+      "selector": ".engagement-bar, .interaction-bar, .social-context",
+      "type": "multiple",
+      "auto_save": true,
+      "sub_selectors": {
+        "like_count": {
+          "selector": "[data-testid='like'] span, .like-count, .heart-count, .reaction-count",
+          "type": "text",
+          "platform_specific": {
+            "twitter": "[data-testid='like'] span",
+            "facebook": ".like-count",
+            "instagram": ".like-count",
+            "linkedin": ".reactions-count"
+          }
+        },
+        "share_count": {
+          "selector": "[data-testid='retweet'] span, .share-count, .repost-count",
+          "type": "text",
+          "platform_specific": {
+            "twitter": "[data-testid='retweet'] span",
+            "facebook": ".share-count",
+            "instagram": ".share-count",
+            "linkedin": ".share-count"
+          }
+        },
+        "comment_count": {
+          "selector": "[data-testid='reply'] span, .comment-count, .reply-count",
+          "type": "text",
+          "platform_specific": {
+            "twitter": "[data-testid='reply'] span",
+            "facebook": ".comment-count",
+            "instagram": ".comment-count",
+            "linkedin": ".comment-count"
+          }
+        },
+        "view_count": {
+          "selector": ".view-count, .impression-count, [data-testid='views']",
+          "type": "text",
+          "platform_specific": {
+            "twitter": "[data-testid='views'] span",
+            "tiktok": ".view-count"
+          }
+        }
+      },
+      "validation": {
+        "numeric_extraction": true,
+        "handle_k_m_notation": true,
+        "negative_values_check": false
+      },
+      "extraction_rules": {
+        "extract_numbers": true,
+        "handle_abbreviations": true,
+        "zero_default": true
+      }
+    },
+    
+    "post_timestamp": {
+      "selector": "[data-testid='Time'] time, time[datetime], .timestamp, .post-time",
+      "type": "text",
+      "auto_save": true,
+      "attribute": "datetime",
+      "fallback_selectors": [
+        ".time-posted",
+        ".publish-time",
+        ".created-time",
+        "[data-time]"
+      ],
+      "platform_specific": {
+        "twitter": "[data-testid='Time'] time",
+        "facebook": ".timestamp",
+        "instagram": "time",
+        "linkedin": ".feed-item-timestamp"
+      },
+      "validation": {
+        "datetime_format_validation": true,
+        "future_date_check": true,
+        "reasonable_range_check": true
+      },
+      "extraction_rules": {
+        "normalize_format": "ISO8601",
+        "handle_relative_time": true,
+        "timezone_preservation": true
+      }
+    },
+    
+    "media_content": {
+      "selector": ".media-container, .attachment, .post-media",
+      "type": "multiple",
+      "auto_save": true,
+      "sub_selectors": {
+        "images": {
+          "selector": "[data-testid='tweetPhoto'] img, .post-image img, .media-image img",
+          "type": "all",
+          "attribute": "src",
+          "platform_specific": {
+            "twitter": "[data-testid='tweetPhoto'] img",
+            "facebook": ".scaledImageFitWidth",
+            "instagram": ".FFVAD img",
+            "linkedin": ".feed-item-image img"
+          }
+        },
+        "videos": {
+          "selector": "video source, .video-player source, .media-video source",
+          "type": "all",
+          "attribute": "src",
+          "platform_specific": {
+            "twitter": "video source",
+            "facebook": "video source",
+            "instagram": "video source",
+            "tiktok": "video source"
+          }
+        },
+        "links": {
+          "selector": ".link-preview, .external-link, .shared-link",
+          "type": "multiple",
+          "sub_selectors": {
+            "url": {
+              "selector": "a",
+              "type": "attribute",
+              "attribute": "href"
+            },
+            "title": {
+              "selector": ".link-title, .preview-title",
+              "type": "text"
+            },
+            "description": {
+              "selector": ".link-description, .preview-description",
+              "type": "text"
+            }
+          }
+        }
+      },
+      "validation": {
+        "media_type_validation": true,
+        "url_accessibility_check": false,
+        "content_moderation_check": false
+      }
+    },
+    
+    "hashtags_mentions": {
+      "selector": ".hashtag, .mention, [data-testid='hashtag']",
+      "type": "multiple",
+      "auto_save": true,
+      "sub_selectors": {
+        "hashtags": {
+          "selector": "a[href*='hashtag'], .hashtag, [data-query-source='hashtag_click']",
+          "type": "all",
+          "extraction_text": true,
+          "platform_specific": {
+            "twitter": "a[href*='/hashtag/']",
+            "instagram": "a[href*='/explore/tags/']",
+            "linkedin": "a[href*='/feed/hashtag/']"
+          }
+        },
+        "mentions": {
+          "selector": "a[href*='/'], .mention, [data-query-source='user_click']",
+          "type": "all",
+          "extraction_text": true,
+          "platform_specific": {
+            "twitter": "a[href*='/']",
+            "instagram": "a[href*='/']",
+            "linkedin": "a[href*='/in/']"
+          }
+        }
+      },
+      "validation": {
+        "format_validation": true,
+        "duplicate_removal": true,
+        "max_count_per_type": 50
+      },
+      "extraction_rules": {
+        "preserve_case": false,
+        "remove_symbols": true,
+        "deduplicate": true
+      }
+    },
+    
+    "post_location": {
+      "selector": ".location, .geo-tag, [data-testid='place']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".place-name",
+        ".geo-location",
+        ".check-in-location"
+      ],
+      "platform_specific": {
+        "twitter": "[data-testid='place']",
+        "facebook": ".place-name",
+        "instagram": ".location-name"
+      },
+      "validation": {
+        "location_format_validation": true,
+        "coordinate_extraction": false,
+        "required": false
+      }
+    },
+    
+    "thread_context": {
+      "selector": ".thread-indicator, .conversation-context, .reply-context",
+      "type": "multiple",
+      "auto_save": true,
+      "sub_selectors": {
+        "is_reply": {
+          "selector": ".reply-indicator, [data-testid='reply-indicator']",
+          "type": "presence"
+        },
+        "reply_to_user": {
+          "selector": ".replying-to, .reply-to-user",
+          "type": "text"
+        },
+        "thread_id": {
+          "selector": "[data-conversation-id], .thread-id",
+          "type": "attribute",
+          "attribute": "data-conversation-id"
+        }
+      },
+      "validation": {
+        "thread_consistency_check": true,
+        "reply_chain_validation": false
+      }
+    },
+    
+    "post_language": {
+      "selector": "[lang], [data-lang], .post-language",
+      "type": "attribute",
+      "auto_save": true,
+      "attribute": "lang",
+      "fallback_selectors": [
+        "[data-language]",
+        ".language-indicator"
+      ],
+      "validation": {
+        "iso_language_code": true,
+        "confidence_threshold": 0.8
+      }
+    }
+  },
+  
+  "pagination": {
+    "enabled": true,
+    "type": "infinite_scroll",
+    "scroll_strategy": "slow_human_like",
+    "max_pages": 20,
+    "delay_between_pages": [5, 15],
+    "scroll_parameters": {
+      "scroll_distance": 300,
+      "scroll_pause": [1, 3],
+      "natural_acceleration": true,
+      "random_scroll_back": true
+    },
+    "load_detection": {
+      "wait_for_new_content": true,
+      "content_stability_check": true,
+      "loading_indicator_selectors": [
+        ".loading",
+        ".spinner",
+        "[data-testid='loading']",
+        ".progress-indicator"
+      ]
+    },
+    "rate_limiting": {
+      "adaptive_delays": true,
+      "platform_specific_limits": true,
+      "burst_protection": true
+    }
+  },
+  
+  "post_processing": [
+    {
+      "type": "clean_social_content",
+      "field": "post_content",
+      "params": {
+        "preserve_hashtags": true,
+        "preserve_mentions": true,
+        "preserve_emojis": true,
+        "remove_tracking_links": true,
+        "decode_url_shorteners": false
+      }
+    },
+    {
+      "type": "parse_engagement_metrics",
+      "field": "engagement_metrics",
+      "params": {
+        "handle_k_notation": true,
+        "handle_m_notation": true,
+        "zero_default": true,
+        "validate_ranges": true
+      }
+    },
+    {
+      "type": "extract_hashtags",
+      "field": "post_content",
+      "output_field": "content_hashtags",
+      "params": {
+        "include_symbol": false,
+        "lowercase": true,
+        "deduplicate": true
+      }
+    },
+    {
+      "type": "extract_mentions",
+      "field": "post_content",
+      "output_field": "content_mentions",
+      "params": {
+        "include_symbol": false,
+        "validate_usernames": true,
+        "deduplicate": true
+      }
+    },
+    {
+      "type": "analyze_sentiment",
+      "field": "post_content",
+      "output_field": "sentiment_analysis",
+      "params": {
+        "sentiment_scale": "positive_negative_neutral",
+        "confidence_threshold": 0.7,
+        "emoji_weight": 0.3
+      }
+    },
+    {
+      "type": "detect_content_type",
+      "field": "post_content",
+      "output_field": "content_classification",
+      "params": {
+        "categories": ["text", "image", "video", "link", "poll", "repost"],
+        "multi_label": true
+      }
+    },
+    {
+      "type": "normalize_datetime",
+      "field": "post_timestamp",
+      "params": {
+        "output_format": "ISO8601",
+        "timezone": "UTC",
+        "handle_relative": true
+      }
+    },
+    {
+      "type": "normalize_urls",
+      "field": "media_content",
+      "params": {
+        "base_url": "auto_detect",
+        "protocol": "https",
+        "remove_tracking": true
+      }
+    },
+    {
+      "type": "calculate_virality_score",
+      "fields": ["engagement_metrics", "post_timestamp", "user_profile"],
+      "output_field": "virality_score",
+      "params": {
+        "time_decay_factor": 0.1,
+        "follower_normalization": true,
+        "platform_adjustment": true
+      }
+    },
+    {
+      "type": "detect_bot_indicators",
+      "field": "user_profile",
+      "output_field": "bot_likelihood",
+      "params": {
+        "check_username_patterns": true,
+        "check_profile_completeness": true,
+        "check_posting_patterns": false
+      }
+    }
+  ],
+  
+  "validation_rules": {
+    "required_fields": ["post_content", "user_profile"],
+    "field_types": {
+      "post_content": "string",
+      "user_profile": "object",
+      "engagement_metrics": "object",
+      "post_timestamp": "datetime",
+      "media_content": "object",
+      "hashtags_mentions": "object",
+      "post_location": "string",
+      "thread_context": "object",
+      "post_language": "string"
+    },
+    "social_media_validation": {
+      "content_authenticity": {
+        "spam_detection": true,
+        "duplicate_content_check": true,
+        "bot_content_indicators": true
+      },
+      "engagement_validation": {
+        "realistic_ratios": true,
+        "engagement_velocity_check": true,
+        "suspicious_patterns": true
+      },
+      "user_validation": {
+        "profile_completeness": true,
+        "verification_status_check": true,
+        "account_age_estimation": false
+      }
+    }
+  },
+  
+  "anti_detection": {
+    "advanced_evasion": {
+      "fingerprint_randomization": true,
+      "behavioral_consistency": true,
+      "session_persistence": true,
+      "request_spacing": true
+    },
+    "platform_specific_evasion": {
+      "twitter": {
+        "api_call_mimicking": true,
+        "scroll_pattern_variation": true,
+        "interaction_simulation": true
+      },
+      "facebook": {
+        "feed_interaction_simulation": true,
+        "news_feed_scrolling": true,
+        "click_pattern_variation": true
+      },
+      "instagram": {
+        "story_viewing_simulation": false,
+        "like_pattern_variation": false,
+        "explore_page_navigation": false
+      }
+    },
+    "rate_limiting_compliance": {
+      "adaptive_delays": true,
+      "platform_limits_respect": true,
+      "burst_pattern_avoidance": true,
+      "suspicious_activity_detection": true
+    }
+  },
+  
+  "monitoring": {
+    "success_metrics": {
+      "content_extraction_rate": true,
+      "engagement_data_completeness": true,
+      "user_profile_completion": true,
+      "media_extraction_success": true
+    },
+    "detection_monitoring": {
+      "captcha_encounters": true,
+      "rate_limit_hits": true,
+      "account_restrictions": true,
+      "content_unavailability": true
+    },
+    "quality_metrics": {
+      "content_authenticity_score": true,
+      "data_freshness": true,
+      "extraction_accuracy": true
+    }
+  },
+  
+  "error_handling": {
+    "platform_errors": {
+      "content_unavailable": "skip_and_continue",
+      "account_suspended": "flag_and_continue",
+      "rate_limited": "exponential_backoff",
+      "captcha_encountered": "attempt_bypass"
+    },
+    "extraction_errors": {
+      "missing_content": "attempt_alternative_selectors",
+      "malformed_data": "apply_correction_rules",
+      "incomplete_extraction": "retry_with_delay"
+    }
+  },
+  
+  "adaptive_selectors": {
+    "enabled": true,
+    "learning_mode": true,
+    "similarity_threshold": 0.8,
+    "platform_adaptation": {
+      "ui_change_detection": true,
+      "selector_evolution": true,
+      "fallback_strategy_learning": true
+    }
+  },
+  
+  "is_active": true,
+  "usage_count": 0,
+  "success_rate": 0.0,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "tags": ["social-media", "stealth", "anti-detection", "rate-limiting", "advanced"],
+  "difficulty_level": "expert",
+  "estimated_success_rate": 70,
+  "recommended_use_cases": [
+    "social_media_monitoring",
+    "brand_sentiment_analysis",
+    "influencer_research",
+    "trending_topic_analysis",
+    "competitive_intelligence"
+  ],
+  
+  "compliance_notes": {
+    "terms_of_service": "Always review and comply with platform terms of service",
+    "rate_limiting": "Respect platform rate limits and API usage guidelines",
+    "privacy": "Only scrape publicly available content",
+    "ethical_guidelines": "Use responsibly for legitimate research and monitoring purposes"
+  }
+}

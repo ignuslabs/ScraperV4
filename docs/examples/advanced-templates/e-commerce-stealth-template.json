@@ -1,0 +1,577 @@
+{
+  "name": "e_commerce_stealth_template",
+  "description": "Advanced e-commerce template with comprehensive stealth features and anti-bot detection",
+  "version": "3.0.0",
+  "category": "e-commerce",
+  
+  "fetcher_config": {
+    "type": "stealth",
+    "stealth": {
+      "headless": true,
+      "humanize": true,
+      "block_webrtc": true,
+      "spoof_canvas": true,
+      "os_randomization": true,
+      "network_idle": true,
+      "wait_for_selector": ".product-container, .product-item, [data-testid='product']",
+      "google_search": false,
+      "disable_ads": true,
+      "disable_images": false,
+      "disable_css": false,
+      "custom_headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache",
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "none",
+        "Sec-Fetch-User": "?1",
+        "Upgrade-Insecure-Requests": "1"
+      },
+      "viewport": {
+        "width": 1920,
+        "height": 1080,
+        "device_scale_factor": 1.0
+      },
+      "geolocation": {
+        "latitude": 37.7749,
+        "longitude": -122.4194,
+        "accuracy": 100
+      },
+      "timezone": "America/New_York",
+      "locale": "en-US",
+      "mouse_movement": {
+        "enabled": true,
+        "natural_movement": true,
+        "click_delay": [100, 300],
+        "scroll_delay": [500, 1500]
+      },
+      "keyboard_simulation": {
+        "enabled": true,
+        "typing_delay": [50, 150],
+        "natural_typing": true
+      }
+    },
+    "playwright": {
+      "headless": true,
+      "network_idle": true,
+      "wait_for_selector": ".product-list, .products-grid",
+      "wait_for_timeout": 30,
+      "block_resources": ["font", "media"],
+      "custom_scripts": [
+        "window.navigator.webdriver = undefined;",
+        "Object.defineProperty(navigator, 'plugins', {get: () => [{name: 'Chrome PDF Plugin'}]});",
+        "Object.defineProperty(navigator, 'languages', {get: () => ['en-US', 'en']});"
+      ]
+    },
+    "proxy_config": {
+      "rotation_strategy": "performance",
+      "retry_failed_proxies": true,
+      "validate_before_use": true,
+      "session_affinity": true,
+      "geographic_preference": "US"
+    }
+  },
+  
+  "requirements": {
+    "javascript_required": true,
+    "stealth_required": true,
+    "anti_bot_protection": true,
+    "concurrent_scraping": false,
+    "session_management": true,
+    "cookie_handling": true,
+    "captcha_detection": true
+  },
+  
+  "selectors": {
+    "product_title": {
+      "selector": "h1.product-title, h1[data-testid='product-title'], .product-name h1, [itemprop='name']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        "h1.pdp-product-title",
+        ".product-header h1",
+        ".item-title",
+        "#product-title",
+        "[data-automation-id='product-title']"
+      ],
+      "validation": {
+        "min_length": 5,
+        "max_length": 200,
+        "required": true
+      },
+      "extraction_rules": {
+        "trim_whitespace": true,
+        "remove_extra_spaces": true,
+        "decode_html_entities": true
+      }
+    },
+    
+    "price_current": {
+      "selector": ".price-current, .price-now, [data-testid='price-current'], .selling-price",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".current-price",
+        ".price-display .current",
+        "[itemprop='price']",
+        ".price .now",
+        "[data-automation-id='current-price']"
+      ],
+      "validation": {
+        "pattern": "\\$?[0-9,]+\\.?[0-9]*",
+        "required": true
+      },
+      "extraction_rules": {
+        "extract_numbers": true,
+        "currency_normalization": true
+      }
+    },
+    
+    "price_original": {
+      "selector": ".price-original, .price-was, .list-price, [data-testid='original-price']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".was-price",
+        ".regular-price",
+        ".msrp-price",
+        ".crossed-out-price",
+        "[data-automation-id='original-price']"
+      ],
+      "validation": {
+        "pattern": "\\$?[0-9,]+\\.?[0-9]*",
+        "required": false
+      },
+      "extraction_rules": {
+        "extract_numbers": true,
+        "currency_normalization": true
+      }
+    },
+    
+    "discount_percentage": {
+      "selector": ".discount-percent, .save-percent, [data-testid='discount']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".percent-off",
+        ".savings-percent",
+        ".discount-badge",
+        "[data-automation-id='discount-percentage']"
+      ],
+      "validation": {
+        "pattern": "[0-9]+%?",
+        "required": false
+      },
+      "extraction_rules": {
+        "extract_numbers": true,
+        "percentage_normalization": true
+      }
+    },
+    
+    "product_description": {
+      "selector": ".product-description, [data-testid='product-description'], .product-details",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".description-content",
+        ".product-summary",
+        "[itemprop='description']",
+        ".item-description",
+        "[data-automation-id='product-description']"
+      ],
+      "validation": {
+        "min_length": 10,
+        "max_length": 5000,
+        "required": false
+      },
+      "extraction_rules": {
+        "preserve_line_breaks": true,
+        "clean_html_tags": true,
+        "remove_script_content": true
+      }
+    },
+    
+    "product_images": {
+      "selector": ".product-images img, .gallery img, [data-testid='product-image'] img",
+      "type": "all",
+      "auto_save": true,
+      "attribute": "src",
+      "fallback_selectors": [
+        ".image-gallery img",
+        ".product-photos img",
+        ".carousel-images img",
+        "[data-automation-id='product-image'] img"
+      ],
+      "validation": {
+        "url_validation": true,
+        "image_format_check": ["jpg", "jpeg", "png", "webp"],
+        "required": false
+      },
+      "extraction_rules": {
+        "resolve_relative_urls": true,
+        "filter_placeholder_images": true,
+        "deduplicate_urls": true
+      }
+    },
+    
+    "stock_status": {
+      "selector": ".stock-status, .availability, [data-testid='stock-status']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".inventory-status",
+        ".in-stock-indicator",
+        "[itemprop='availability']",
+        ".availability-message",
+        "[data-automation-id='stock-status']"
+      ],
+      "validation": {
+        "enum_values": ["in stock", "out of stock", "limited stock", "backorder", "preorder"],
+        "required": false
+      },
+      "extraction_rules": {
+        "normalize_text": true,
+        "status_mapping": {
+          "available": "in stock",
+          "unavailable": "out of stock",
+          "limited": "limited stock"
+        }
+      }
+    },
+    
+    "product_rating": {
+      "selector": ".rating-value, [data-testid='rating'], [itemprop='ratingValue']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".average-rating",
+        ".star-rating-value",
+        ".rating-score",
+        "[data-automation-id='rating-value']"
+      ],
+      "validation": {
+        "pattern": "[0-5](\\.[0-9])?",
+        "range": [0, 5],
+        "required": false
+      },
+      "extraction_rules": {
+        "extract_numbers": true,
+        "decimal_precision": 1
+      }
+    },
+    
+    "review_count": {
+      "selector": ".review-count, [data-testid='review-count'], [itemprop='reviewCount']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".reviews-total",
+        ".rating-count",
+        ".number-of-reviews",
+        "[data-automation-id='review-count']"
+      ],
+      "validation": {
+        "pattern": "[0-9,]+",
+        "required": false
+      },
+      "extraction_rules": {
+        "extract_numbers": true,
+        "handle_abbreviated_numbers": true
+      }
+    },
+    
+    "brand_name": {
+      "selector": ".brand-name, [data-testid='brand'], [itemprop='brand']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".manufacturer",
+        ".product-brand",
+        ".brand-info",
+        "[data-automation-id='brand-name']"
+      ],
+      "validation": {
+        "min_length": 1,
+        "max_length": 100,
+        "required": false
+      },
+      "extraction_rules": {
+        "trim_whitespace": true,
+        "title_case": true
+      }
+    },
+    
+    "product_sku": {
+      "selector": ".sku, .product-id, [data-testid='sku'], [itemprop='sku']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".item-number",
+        ".model-number",
+        ".product-code",
+        "[data-automation-id='sku']"
+      ],
+      "validation": {
+        "pattern": "[A-Za-z0-9-_]+",
+        "required": false
+      },
+      "extraction_rules": {
+        "uppercase": true,
+        "remove_spaces": true
+      }
+    },
+    
+    "product_variants": {
+      "selector": ".variant-options option, .product-options select option",
+      "type": "all",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".size-options option",
+        ".color-options option",
+        ".style-options option"
+      ],
+      "validation": {
+        "required": false
+      },
+      "extraction_rules": {
+        "filter_empty_values": true,
+        "deduplicate": true
+      }
+    },
+    
+    "shipping_info": {
+      "selector": ".shipping-info, .delivery-info, [data-testid='shipping']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".shipping-details",
+        ".delivery-options",
+        ".fulfillment-info",
+        "[data-automation-id='shipping-info']"
+      ],
+      "validation": {
+        "required": false
+      },
+      "extraction_rules": {
+        "clean_html_tags": true,
+        "preserve_important_info": true
+      }
+    }
+  },
+  
+  "pagination": {
+    "enabled": true,
+    "next_selector": ".pagination .next, [aria-label='Next page'], .next-page",
+    "max_pages": 50,
+    "delay_between_pages": [3, 7],
+    "wait_for_load": true,
+    "scroll_before_next": true,
+    "fallback_selectors": [
+      ".pager-next",
+      "[data-testid='next-page']",
+      ".pagination-next"
+    ],
+    "stop_conditions": [
+      ".no-more-products",
+      ".end-of-results",
+      "[data-testid='no-more-items']"
+    ]
+  },
+  
+  "post_processing": [
+    {
+      "type": "strip",
+      "field": "product_title",
+      "params": {
+        "remove_extra_spaces": true,
+        "decode_entities": true
+      }
+    },
+    {
+      "type": "extract_price",
+      "field": "price_current",
+      "params": {
+        "currency": "USD",
+        "decimal_places": 2
+      }
+    },
+    {
+      "type": "extract_price",
+      "field": "price_original",
+      "params": {
+        "currency": "USD",
+        "decimal_places": 2
+      }
+    },
+    {
+      "type": "calculate_discount",
+      "fields": ["price_current", "price_original"],
+      "output_field": "calculated_discount_percent"
+    },
+    {
+      "type": "normalize_urls",
+      "field": "product_images",
+      "params": {
+        "base_url": "auto_detect",
+        "protocol": "https"
+      }
+    },
+    {
+      "type": "normalize_stock_status",
+      "field": "stock_status",
+      "params": {
+        "mapping": {
+          "available": "in_stock",
+          "in stock": "in_stock",
+          "out of stock": "out_of_stock",
+          "limited": "limited_stock"
+        }
+      }
+    },
+    {
+      "type": "extract_number",
+      "field": "product_rating",
+      "params": {
+        "decimal_places": 1,
+        "range": [0, 5]
+      }
+    },
+    {
+      "type": "extract_number",
+      "field": "review_count",
+      "params": {
+        "handle_k_notation": true,
+        "handle_m_notation": true
+      }
+    },
+    {
+      "type": "clean_text",
+      "field": "product_description",
+      "params": {
+        "remove_html": true,
+        "preserve_line_breaks": true,
+        "max_length": 2000
+      }
+    }
+  ],
+  
+  "validation_rules": {
+    "required_fields": ["product_title", "price_current"],
+    "field_types": {
+      "product_title": "string",
+      "price_current": "number",
+      "price_original": "number",
+      "discount_percentage": "number",
+      "product_description": "string",
+      "product_images": "list",
+      "stock_status": "string",
+      "product_rating": "number",
+      "review_count": "number",
+      "brand_name": "string",
+      "product_sku": "string",
+      "product_variants": "list",
+      "shipping_info": "string"
+    },
+    "field_patterns": {
+      "product_sku": "^[A-Za-z0-9-_]+$",
+      "stock_status": "^(in_stock|out_of_stock|limited_stock|backorder|preorder)$"
+    },
+    "field_ranges": {
+      "price_current": [0.01, 999999.99],
+      "price_original": [0.01, 999999.99],
+      "product_rating": [0, 5],
+      "review_count": [0, 1000000]
+    },
+    "conditional_validation": {
+      "if_price_original_exists": {
+        "condition": "price_original > 0",
+        "then_required": ["calculated_discount_percent"]
+      }
+    }
+  },
+  
+  "adaptive_selectors": {
+    "enabled": true,
+    "learning_mode": true,
+    "similarity_threshold": 0.85,
+    "max_learning_attempts": 5,
+    "confidence_threshold": 0.9,
+    "fallback_strategies": [
+      "semantic_analysis",
+      "visual_similarity",
+      "content_pattern_matching"
+    ]
+  },
+  
+  "fallback_selectors": {
+    "enabled": true,
+    "max_attempts": 5,
+    "delay_between_attempts": [1, 3],
+    "progressive_timeout": true
+  },
+  
+  "anti_detection": {
+    "cloudflare_bypass": true,
+    "captcha_detection": true,
+    "bot_detection_evasion": true,
+    "fingerprint_randomization": true,
+    "behavioral_mimicking": true,
+    "session_persistence": true,
+    "custom_evasion_scripts": [
+      "navigator_overrides.js",
+      "webgl_spoofing.js",
+      "timing_randomization.js"
+    ]
+  },
+  
+  "performance_optimization": {
+    "lazy_loading": true,
+    "resource_blocking": {
+      "images": false,
+      "fonts": true,
+      "stylesheets": false,
+      "scripts": false
+    },
+    "cache_strategy": "aggressive",
+    "connection_pooling": true,
+    "request_compression": true
+  },
+  
+  "error_handling": {
+    "retry_on_errors": ["network", "timeout", "captcha"],
+    "max_retries": 3,
+    "backoff_strategy": "exponential",
+    "error_classification": true,
+    "automatic_recovery": true,
+    "fail_fast_conditions": ["banned_ip", "account_suspended"]
+  },
+  
+  "monitoring": {
+    "success_rate_tracking": true,
+    "performance_metrics": true,
+    "error_reporting": true,
+    "quality_assurance": {
+      "data_completeness_check": true,
+      "price_sanity_check": true,
+      "image_availability_check": true
+    }
+  },
+  
+  "is_active": true,
+  "usage_count": 0,
+  "success_rate": 0.0,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "tags": ["e-commerce", "stealth", "advanced", "production"],
+  "difficulty_level": "advanced",
+  "estimated_success_rate": 85,
+  "recommended_use_cases": [
+    "large_scale_price_monitoring",
+    "competitive_intelligence",
+    "inventory_tracking",
+    "market_research"
+  ]
+}

@@ -1,0 +1,371 @@
+# ScraperV4 Production Docker Compose Configuration
+# ==================================================
+# 
+# Complete production-ready deployment with:
+# - ScraperV4 main application
+# - Redis for job queue and caching
+# - PostgreSQL for data persistence
+# - Nginx reverse proxy with SSL
+# - Prometheus monitoring
+# - Grafana dashboards
+# - Log aggregation with ELK stack
+#
+# Usage:
+#   docker-compose up -d
+#   docker-compose logs -f scraperv4
+#   docker-compose down
+
+version: '3.8'
+
+services:
+  # ScraperV4 Main Application
+  scraperv4:
+    image: scraperv4:latest
+    container_name: scraperv4_app
+    restart: unless-stopped
+    ports:
+      - "5000"  # Internal port, exposed via nginx
+    environment:
+      # Application Configuration
+      - SCRAPERV4_ENV=production
+      - SCRAPERV4_DEBUG=false
+      - SCRAPERV4_HOST=0.0.0.0
+      - SCRAPERV4_PORT=5000
+      - SCRAPERV4_WORKERS=4
+      
+      # Database Configuration
+      - DATABASE_URL=postgresql://scraperv4:${POSTGRES_PASSWORD}@postgres:5432/scraperv4
+      - DATABASE_POOL_SIZE=20
+      - DATABASE_MAX_OVERFLOW=30
+      
+      # Redis Configuration
+      - REDIS_URL=redis://redis:6379/0
+      - REDIS_CACHE_DB=1
+      - REDIS_SESSION_DB=2
+      
+      # Job Queue Configuration
+      - CELERY_BROKER_URL=redis://redis:6379/3
+      - CELERY_RESULT_BACKEND=redis://redis:6379/4
+      - CELERY_WORKERS=8
+      - CELERY_MAX_TASKS_PER_CHILD=1000
+      
+      # Proxy Configuration
+      - PROXY_POOL_SIZE=100
+      - PROXY_ROTATION_ENABLED=true
+      - PROXY_HEALTH_CHECK_INTERVAL=300
+      
+      # Security Configuration
+      - SECRET_KEY=${SECRET_KEY}
+      - JWT_SECRET_KEY=${JWT_SECRET_KEY}
+      - CORS_ORIGINS=https://your-domain.com
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT_PER_MINUTE=100
+      
+      # Monitoring Configuration
+      - PROMETHEUS_ENABLED=true
+      - PROMETHEUS_PORT=9090
+      - LOG_LEVEL=INFO
+      - SENTRY_DSN=${SENTRY_DSN}
+      
+      # Storage Configuration
+      - DATA_STORAGE_PATH=/app/data
+      - EXPORT_STORAGE_PATH=/app/exports
+      - TEMP_STORAGE_PATH=/app/temp
+      - MAX_EXPORT_SIZE_MB=500
+      
+      # Performance Configuration
+      - MAX_CONCURRENT_JOBS=50
+      - MAX_PAGES_PER_JOB=1000
+      - REQUEST_TIMEOUT=30
+      - MEMORY_LIMIT_MB=2048
+      
+    volumes:
+      - scraperv4_data:/app/data
+      - scraperv4_exports:/app/exports
+      - scraperv4_logs:/app/logs
+      - scraperv4_temp:/app/temp
+      - ./templates:/app/templates:ro  # Custom templates
+      - ./config:/app/config:ro        # Custom configuration
+      
+    depends_on:
+      - postgres
+      - redis
+      
+    networks:
+      - scraperv4_network
+      
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/api/status"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+      
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
+
+  # Redis for Caching and Job Queue
+  redis:
+    image: redis:7-alpine
+    container_name: scraperv4_redis
+    restart: unless-stopped
+    ports:
+      - "6379"
+    command: |
+      redis-server 
+      --appendonly yes 
+      --appendfsync everysec 
+      --maxmemory 512mb 
+      --maxmemory-policy allkeys-lru
+      --tcp-keepalive 60
+      --timeout 300
+    volumes:
+      - redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
+    networks:
+      - scraperv4_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: scraperv4_postgres
+    restart: unless-stopped
+    ports:
+      - "5432"
+    environment:
+      - POSTGRES_DB=scraperv4
+      - POSTGRES_USER=scraperv4
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256
+      - PGDATA=/var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+      - ./postgres/postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    networks:
+      - scraperv4_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U scraperv4 -d scraperv4"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  # Nginx Reverse Proxy
+  nginx:
+    image: nginx:alpine
+    container_name: scraperv4_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./ssl:/etc/nginx/ssl:ro
+      - nginx_logs:/var/log/nginx
+    depends_on:
+      - scraperv4
+    networks:
+      - scraperv4_network
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Celery Worker for Background Jobs
+  celery_worker:
+    image: scraperv4:latest
+    container_name: scraperv4_celery_worker
+    restart: unless-stopped
+    command: celery -A scraperv4.celery worker --loglevel=info --concurrency=4
+    environment:
+      - SCRAPERV4_ENV=production
+      - DATABASE_URL=postgresql://scraperv4:${POSTGRES_PASSWORD}@postgres:5432/scraperv4
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/3
+      - CELERY_RESULT_BACKEND=redis://redis:6379/4
+    volumes:
+      - scraperv4_data:/app/data
+      - scraperv4_exports:/app/exports
+      - scraperv4_logs:/app/logs
+      - scraperv4_temp:/app/temp
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - scraperv4_network
+    deploy:
+      replicas: 2
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 1.5G
+
+  # Celery Beat Scheduler
+  celery_beat:
+    image: scraperv4:latest
+    container_name: scraperv4_celery_beat
+    restart: unless-stopped
+    command: celery -A scraperv4.celery beat --loglevel=info
+    environment:
+      - SCRAPERV4_ENV=production
+      - DATABASE_URL=postgresql://scraperv4:${POSTGRES_PASSWORD}@postgres:5432/scraperv4
+      - REDIS_URL=redis://redis:6379/0
+      - CELERY_BROKER_URL=redis://redis:6379/3
+      - CELERY_RESULT_BACKEND=redis://redis:6379/4
+    volumes:
+      - celery_beat_data:/app/celerybeat-schedule
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - scraperv4_network
+
+  # Prometheus Monitoring
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: scraperv4_prometheus
+    restart: unless-stopped
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - scraperv4_network
+
+  # Grafana Dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: scraperv4_grafana
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./monitoring/grafana/dashboards:/etc/grafana/dashboards:ro
+    networks:
+      - scraperv4_network
+
+  # Elasticsearch for Log Aggregation
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: scraperv4_elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - scraperv4_network
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+
+  # Logstash for Log Processing
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    container_name: scraperv4_logstash
+    restart: unless-stopped
+    volumes:
+      - ./logging/logstash.conf:/usr/share/logstash/pipeline/logstash.conf:ro
+      - scraperv4_logs:/var/log/scraperv4:ro
+    depends_on:
+      - elasticsearch
+    networks:
+      - scraperv4_network
+
+  # Kibana for Log Visualization
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: scraperv4_kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+    networks:
+      - scraperv4_network
+
+# Docker Networks
+networks:
+  scraperv4_network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+# Persistent Volumes
+volumes:
+  # Application Data
+  scraperv4_data:
+    driver: local
+  scraperv4_exports:
+    driver: local
+  scraperv4_logs:
+    driver: local
+  scraperv4_temp:
+    driver: local
+    
+  # Database Data
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+    
+  # Monitoring Data
+  prometheus_data:
+    driver: local
+  grafana_data:
+    driver: local
+  elasticsearch_data:
+    driver: local
+    
+  # Other Data
+  nginx_logs:
+    driver: local
+  celery_beat_data:
+    driver: local
+
+# Environment Variables Template
+# Create a .env file with these variables:
+#
+# POSTGRES_PASSWORD=your_secure_postgres_password
+# SECRET_KEY=your_secret_key_here
+# JWT_SECRET_KEY=your_jwt_secret_key_here
+# GRAFANA_PASSWORD=your_grafana_password
+# SENTRY_DSN=your_sentry_dsn_if_using_sentry

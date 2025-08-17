@@ -1,0 +1,574 @@
+{
+  "name": "dynamic_spa_template",
+  "description": "Advanced template for scraping Single Page Applications with dynamic content loading",
+  "version": "3.0.0",
+  "category": "dynamic-spa",
+  
+  "fetcher_config": {
+    "type": "playwright",
+    "playwright": {
+      "headless": false,
+      "browser_type": "chromium",
+      "network_idle": true,
+      "wait_for_selector": "[data-testid='content-loaded'], .content-container, #app",
+      "wait_for_timeout": 45,
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "block_resources": ["image", "font", "media"],
+      "custom_scripts": [
+        "// Wait for React/Vue/Angular to initialize",
+        "await new Promise(resolve => {",
+        "  const checkFramework = () => {",
+        "    if (window.React || window.Vue || window.ng || window.angular || document.querySelector('[data-reactroot]')) {",
+        "      resolve();",
+        "    } else {",
+        "      setTimeout(checkFramework, 100);",
+        "    }",
+        "  };",
+        "  checkFramework();",
+        "});",
+        "",
+        "// Scroll to trigger lazy loading",
+        "await page.evaluate(() => {",
+        "  return new Promise((resolve) => {",
+        "    let totalHeight = 0;",
+        "    const distance = 100;",
+        "    const timer = setInterval(() => {",
+        "      const scrollHeight = document.body.scrollHeight;",
+        "      window.scrollBy(0, distance);",
+        "      totalHeight += distance;",
+        "      if(totalHeight >= scrollHeight){",
+        "        clearInterval(timer);",
+        "        resolve();",
+        "      }",
+        "    }, 100);",
+        "  });",
+        "});",
+        "",
+        "// Wait for dynamic content to load",
+        "await page.waitForFunction(() => {",
+        "  const loadingElements = document.querySelectorAll('.loading, .spinner, [data-testid=\"loading\"]');",
+        "  return loadingElements.length === 0;",
+        "}, { timeout: 30000 });",
+        "",
+        "// Simulate user interactions to trigger content",
+        "const buttons = await page.$$('button[data-load-more], .load-more-button, [data-testid=\"load-more\"]');",
+        "for (const button of buttons) {",
+        "  await button.click();",
+        "  await page.waitForTimeout(2000);",
+        "}"
+      ],
+      "interaction_simulation": {
+        "enabled": true,
+        "click_elements": [
+          ".load-more-button",
+          "[data-testid='load-more']",
+          ".show-more",
+          ".expand-content"
+        ],
+        "hover_elements": [
+          ".dropdown-trigger",
+          ".tooltip-trigger",
+          ".menu-item"
+        ],
+        "form_interactions": {
+          "enabled": true,
+          "auto_fill": false,
+          "submit_forms": false
+        }
+      },
+      "state_management": {
+        "wait_for_state_changes": true,
+        "observe_dom_mutations": true,
+        "track_xhr_requests": true,
+        "wait_for_api_calls": true
+      }
+    },
+    "stealth": {
+      "headless": true,
+      "humanize": true,
+      "block_webrtc": true,
+      "spoof_canvas": true,
+      "os_randomization": true
+    }
+  },
+  
+  "requirements": {
+    "javascript_required": true,
+    "stealth_required": false,
+    "anti_bot_protection": false,
+    "concurrent_scraping": false,
+    "session_management": true,
+    "cookie_handling": true,
+    "local_storage_access": true,
+    "xhr_monitoring": true
+  },
+  
+  "dynamic_content_handling": {
+    "lazy_loading": {
+      "enabled": true,
+      "scroll_trigger": true,
+      "intersection_observer": true,
+      "infinite_scroll_detection": true
+    },
+    "ajax_content": {
+      "monitor_xhr": true,
+      "wait_for_responses": true,
+      "timeout": 30,
+      "expected_requests": [
+        "/api/content",
+        "/api/data",
+        "/graphql"
+      ]
+    },
+    "dynamic_selectors": {
+      "react_components": true,
+      "vue_components": true,
+      "angular_components": true,
+      "shadow_dom": true
+    }
+  },
+  
+  "selectors": {
+    "main_content": {
+      "selector": "[data-testid='main-content'], .main-content, #main, .content-area",
+      "type": "text",
+      "auto_save": true,
+      "wait_conditions": {
+        "wait_for_element": true,
+        "wait_for_visible": true,
+        "wait_for_stable": true,
+        "stability_timeout": 2000
+      },
+      "fallback_selectors": [
+        ".app-content",
+        ".page-content",
+        "[role='main']",
+        ".container .content"
+      ],
+      "dynamic_detection": {
+        "react_component": "MainContent",
+        "vue_component": "main-content",
+        "angular_component": "app-main-content"
+      }
+    },
+    
+    "article_title": {
+      "selector": "h1[data-testid='article-title'], .article-title h1, .post-title",
+      "type": "text",
+      "auto_save": true,
+      "wait_conditions": {
+        "wait_for_element": true,
+        "wait_for_text": true,
+        "min_text_length": 5
+      },
+      "fallback_selectors": [
+        "h1.title",
+        ".headline",
+        "[data-title]",
+        ".entry-title"
+      ],
+      "validation": {
+        "min_length": 5,
+        "max_length": 200,
+        "required": true
+      }
+    },
+    
+    "dynamic_list_items": {
+      "selector": "[data-testid='list-item'], .list-item, .feed-item, .card",
+      "type": "multiple",
+      "auto_save": true,
+      "wait_conditions": {
+        "wait_for_minimum_count": 5,
+        "wait_for_loading_complete": true,
+        "max_wait_time": 30
+      },
+      "sub_selectors": {
+        "item_title": {
+          "selector": ".item-title, h2, h3, [data-testid='item-title']",
+          "type": "text"
+        },
+        "item_description": {
+          "selector": ".item-description, .summary, p",
+          "type": "text"
+        },
+        "item_image": {
+          "selector": "img",
+          "type": "attribute",
+          "attribute": "src"
+        },
+        "item_link": {
+          "selector": "a",
+          "type": "attribute",
+          "attribute": "href"
+        },
+        "item_metadata": {
+          "selector": ".metadata, .meta-info, [data-testid='metadata']",
+          "type": "text"
+        }
+      },
+      "infinite_scroll": {
+        "enabled": true,
+        "trigger_selector": ".load-more, [data-testid='load-more']",
+        "auto_scroll": true,
+        "max_iterations": 10
+      }
+    },
+    
+    "comments_section": {
+      "selector": "[data-testid='comments'], .comments-container, #comments",
+      "type": "multiple",
+      "auto_save": true,
+      "lazy_loading": {
+        "enabled": true,
+        "trigger_method": "click",
+        "trigger_selector": ".load-comments, [data-testid='load-comments']"
+      },
+      "sub_selectors": {
+        "comment_author": {
+          "selector": ".comment-author, .author-name, [data-testid='author']",
+          "type": "text"
+        },
+        "comment_text": {
+          "selector": ".comment-body, .comment-text, p",
+          "type": "text"
+        },
+        "comment_timestamp": {
+          "selector": ".comment-time, time, [data-testid='timestamp']",
+          "type": "text",
+          "attribute": "datetime"
+        },
+        "comment_votes": {
+          "selector": ".vote-count, .likes, [data-testid='votes']",
+          "type": "text"
+        }
+      }
+    },
+    
+    "user_profile": {
+      "selector": "[data-testid='user-profile'], .user-info, .profile-card",
+      "type": "single",
+      "auto_save": true,
+      "wait_conditions": {
+        "wait_for_api_response": true,
+        "api_endpoints": ["/api/user", "/api/profile"]
+      },
+      "sub_selectors": {
+        "username": {
+          "selector": ".username, .handle, [data-testid='username']",
+          "type": "text"
+        },
+        "display_name": {
+          "selector": ".display-name, .full-name, [data-testid='display-name']",
+          "type": "text"
+        },
+        "avatar": {
+          "selector": ".avatar img, .profile-image img",
+          "type": "attribute",
+          "attribute": "src"
+        },
+        "bio": {
+          "selector": ".bio, .description, [data-testid='bio']",
+          "type": "text"
+        },
+        "stats": {
+          "selector": ".stats, .user-stats, [data-testid='stats']",
+          "type": "multiple",
+          "sub_selectors": {
+            "follower_count": {
+              "selector": ".followers, [data-testid='followers']",
+              "type": "text"
+            },
+            "following_count": {
+              "selector": ".following, [data-testid='following']",
+              "type": "text"
+            },
+            "post_count": {
+              "selector": ".posts, [data-testid='posts']",
+              "type": "text"
+            }
+          }
+        }
+      }
+    },
+    
+    "search_results": {
+      "selector": "[data-testid='search-results'], .search-results, .results-container",
+      "type": "multiple",
+      "auto_save": true,
+      "dynamic_loading": {
+        "pagination_type": "infinite_scroll",
+        "load_trigger": "scroll_bottom",
+        "max_pages": 20
+      },
+      "sub_selectors": {
+        "result_title": {
+          "selector": ".result-title, h3, [data-testid='result-title']",
+          "type": "text"
+        },
+        "result_snippet": {
+          "selector": ".snippet, .description, [data-testid='snippet']",
+          "type": "text"
+        },
+        "result_url": {
+          "selector": "a",
+          "type": "attribute",
+          "attribute": "href"
+        },
+        "result_metadata": {
+          "selector": ".metadata, .result-meta",
+          "type": "text"
+        }
+      }
+    },
+    
+    "navigation_menu": {
+      "selector": "[data-testid='navigation'], .nav-menu, .main-nav",
+      "type": "multiple",
+      "auto_save": true,
+      "interaction_required": {
+        "hover_to_expand": true,
+        "click_to_expand": false
+      },
+      "sub_selectors": {
+        "menu_items": {
+          "selector": ".nav-item, .menu-item, li",
+          "type": "multiple",
+          "sub_selectors": {
+            "item_text": {
+              "selector": "a, span",
+              "type": "text"
+            },
+            "item_url": {
+              "selector": "a",
+              "type": "attribute",
+              "attribute": "href"
+            }
+          }
+        }
+      }
+    },
+    
+    "modal_content": {
+      "selector": "[data-testid='modal'], .modal, .popup, .overlay",
+      "type": "single",
+      "auto_save": true,
+      "trigger_conditions": {
+        "click_trigger": ".open-modal, [data-testid='open-modal']",
+        "automatic_popup": true,
+        "popup_delay": 5
+      },
+      "sub_selectors": {
+        "modal_title": {
+          "selector": ".modal-title, h2, [data-testid='modal-title']",
+          "type": "text"
+        },
+        "modal_body": {
+          "selector": ".modal-body, .content, [data-testid='modal-content']",
+          "type": "text"
+        },
+        "modal_actions": {
+          "selector": ".modal-actions button, .buttons button",
+          "type": "multiple",
+          "extract_text": true
+        }
+      }
+    }
+  },
+  
+  "pagination": {
+    "enabled": true,
+    "type": "infinite_scroll",
+    "scroll_strategy": "automatic",
+    "next_selector": ".load-more, [data-testid='load-more'], .pagination-next",
+    "max_pages": 25,
+    "delay_between_pages": [2, 5],
+    "wait_for_content": true,
+    "content_stabilization": {
+      "enabled": true,
+      "wait_time": 3,
+      "dom_stability_check": true
+    },
+    "fallback_pagination": {
+      "enabled": true,
+      "click_based": true,
+      "url_based": false
+    }
+  },
+  
+  "post_processing": [
+    {
+      "type": "clean_dynamic_content",
+      "field": "main_content",
+      "params": {
+        "remove_loading_indicators": true,
+        "remove_empty_elements": true,
+        "preserve_structure": true
+      }
+    },
+    {
+      "type": "normalize_dynamic_urls",
+      "field": "item_link",
+      "params": {
+        "handle_hash_routes": true,
+        "preserve_query_params": true,
+        "base_url_detection": "automatic"
+      }
+    },
+    {
+      "type": "extract_timestamps",
+      "field": "comment_timestamp",
+      "params": {
+        "format": "iso",
+        "timezone": "UTC",
+        "relative_time_parsing": true
+      }
+    },
+    {
+      "type": "parse_engagement_metrics",
+      "field": "comment_votes",
+      "params": {
+        "handle_abbreviated_numbers": true,
+        "detect_negative_values": true
+      }
+    },
+    {
+      "type": "deduplicate_items",
+      "field": "dynamic_list_items",
+      "params": {
+        "comparison_fields": ["item_title", "item_link"],
+        "strategy": "first_occurrence"
+      }
+    },
+    {
+      "type": "validate_spa_content",
+      "params": {
+        "check_content_completeness": true,
+        "verify_dynamic_loading": true,
+        "minimum_content_threshold": 100
+      }
+    }
+  ],
+  
+  "validation_rules": {
+    "required_fields": ["main_content"],
+    "field_types": {
+      "main_content": "string",
+      "article_title": "string",
+      "dynamic_list_items": "list",
+      "comments_section": "list",
+      "user_profile": "object",
+      "search_results": "list",
+      "navigation_menu": "list",
+      "modal_content": "object"
+    },
+    "dynamic_validation": {
+      "content_loading_validation": true,
+      "ajax_completion_check": true,
+      "framework_initialization_check": true
+    },
+    "spa_specific_validation": {
+      "route_stability": true,
+      "state_consistency": true,
+      "component_rendering": true
+    }
+  },
+  
+  "error_handling": {
+    "javascript_errors": {
+      "ignore_console_errors": false,
+      "handle_unhandled_promises": true,
+      "capture_error_details": true
+    },
+    "loading_failures": {
+      "retry_on_timeout": true,
+      "retry_on_empty_content": true,
+      "max_retries": 3
+    },
+    "spa_specific_errors": {
+      "handle_route_changes": true,
+      "handle_state_errors": true,
+      "handle_component_errors": true
+    }
+  },
+  
+  "performance_optimization": {
+    "resource_blocking": {
+      "block_images": true,
+      "block_fonts": true,
+      "block_analytics": true,
+      "allow_essential_js": true
+    },
+    "memory_management": {
+      "cleanup_between_pages": true,
+      "limit_dom_size": true,
+      "garbage_collection": true
+    },
+    "execution_optimization": {
+      "parallel_content_loading": false,
+      "priority_content_first": true,
+      "background_resource_loading": false
+    }
+  },
+  
+  "monitoring": {
+    "spa_metrics": {
+      "load_time_tracking": true,
+      "content_completion_time": true,
+      "interaction_success_rate": true,
+      "ajax_request_monitoring": true
+    },
+    "quality_metrics": {
+      "content_completeness": true,
+      "dynamic_content_ratio": true,
+      "user_interaction_success": true
+    }
+  },
+  
+  "adaptive_selectors": {
+    "enabled": true,
+    "learning_mode": true,
+    "similarity_threshold": 0.8,
+    "spa_adaptation": {
+      "framework_detection": true,
+      "component_learning": true,
+      "state_based_adaptation": true
+    }
+  },
+  
+  "is_active": true,
+  "usage_count": 0,
+  "success_rate": 0.0,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "tags": ["spa", "dynamic", "javascript", "react", "vue", "angular"],
+  "difficulty_level": "expert",
+  "estimated_success_rate": 75,
+  "recommended_use_cases": [
+    "modern_web_applications",
+    "social_media_platforms",
+    "dynamic_content_sites",
+    "single_page_applications"
+  ],
+  
+  "framework_specific_configs": {
+    "react": {
+      "wait_for_hydration": true,
+      "component_selectors": "[data-reactroot], [data-react-component]",
+      "state_management": ["redux", "context", "zustand"]
+    },
+    "vue": {
+      "wait_for_mount": true,
+      "component_selectors": "[data-v-], .vue-component",
+      "state_management": ["vuex", "pinia"]
+    },
+    "angular": {
+      "wait_for_bootstrap": true,
+      "component_selectors": "[ng-], [data-ng-], app-",
+      "state_management": ["ngrx", "akita"]
+    }
+  }
+}

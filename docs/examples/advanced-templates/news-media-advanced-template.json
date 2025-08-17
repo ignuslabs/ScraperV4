@@ -1,0 +1,649 @@
+{
+  "name": "news_media_advanced_template",
+  "description": "Advanced template for scraping news and media websites with paywall bypass and content analysis",
+  "version": "3.0.0",
+  "category": "news-media",
+  
+  "fetcher_config": {
+    "type": "auto",
+    "stealth": {
+      "headless": true,
+      "humanize": true,
+      "block_webrtc": true,
+      "spoof_canvas": true,
+      "os_randomization": true,
+      "network_idle": true,
+      "wait_for_selector": ".article-content, .story-body, [data-testid='article-body']",
+      "google_search": true,
+      "disable_ads": true,
+      "paywall_bypass": {
+        "enabled": true,
+        "methods": ["google_cache", "archive_org", "reader_mode"],
+        "detection_selectors": [
+          ".paywall",
+          ".subscription-wall",
+          ".premium-content",
+          "[data-testid='paywall']"
+        ]
+      },
+      "custom_headers": {
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9",
+        "Accept-Encoding": "gzip, deflate, br",
+        "Referer": "https://www.google.com/",
+        "Cache-Control": "no-cache",
+        "Pragma": "no-cache"
+      }
+    },
+    "basic": {
+      "timeout": 45,
+      "follow_redirects": true,
+      "max_redirects": 5,
+      "headers": {
+        "User-Agent": "Mozilla/5.0 (compatible; ScraperV4/3.0; +https://example.com/bot)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Accept-Encoding": "gzip, deflate",
+        "DNT": "1",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1"
+      }
+    }
+  },
+  
+  "requirements": {
+    "javascript_required": false,
+    "stealth_required": true,
+    "anti_bot_protection": true,
+    "concurrent_scraping": true,
+    "session_management": false,
+    "cookie_handling": true,
+    "paywall_detection": true,
+    "content_verification": true
+  },
+  
+  "content_extraction": {
+    "article_detection": {
+      "enabled": true,
+      "methods": ["readability", "content_analysis", "semantic_tags"],
+      "confidence_threshold": 0.8
+    },
+    "paywall_handling": {
+      "detection_keywords": ["subscribe", "premium", "paywall", "login to continue"],
+      "bypass_methods": ["google_cache", "web_archive", "reader_mode"],
+      "fallback_sources": ["archive.org", "archive.today", "google_cache"]
+    },
+    "content_validation": {
+      "min_word_count": 50,
+      "max_advertisement_ratio": 0.3,
+      "content_quality_check": true
+    }
+  },
+  
+  "selectors": {
+    "headline": {
+      "selector": "h1.headline, h1[data-testid='headline'], .article-headline h1, [itemprop='headline']",
+      "type": "text",
+      "auto_save": true,
+      "priority": 1,
+      "fallback_selectors": [
+        "h1.entry-title",
+        "h1.post-title",
+        ".article-title h1",
+        ".story-headline",
+        "[data-module='ArticleHeadline'] h1"
+      ],
+      "validation": {
+        "min_length": 10,
+        "max_length": 300,
+        "required": true,
+        "quality_indicators": ["strong", "em", "specific_keywords"]
+      },
+      "extraction_rules": {
+        "remove_byline": true,
+        "remove_timestamps": true,
+        "clean_formatting": true
+      }
+    },
+    
+    "article_body": {
+      "selector": ".article-content, .story-body, [data-testid='article-body'], [itemprop='articleBody']",
+      "type": "text",
+      "auto_save": true,
+      "priority": 1,
+      "fallback_selectors": [
+        ".entry-content",
+        ".post-content",
+        ".article-text",
+        ".story-content",
+        "[data-module='ArticleBody']"
+      ],
+      "validation": {
+        "min_length": 100,
+        "max_length": 50000,
+        "required": true,
+        "content_indicators": ["paragraph_count", "word_density", "readability"]
+      },
+      "extraction_rules": {
+        "preserve_paragraphs": true,
+        "remove_ads": true,
+        "remove_related_articles": true,
+        "clean_social_embeds": false,
+        "preserve_quotes": true,
+        "preserve_lists": true
+      },
+      "content_filtering": {
+        "remove_patterns": [
+          "Advertisement",
+          "ADVERTISEMENT",
+          "Sponsored Content",
+          "Read More:",
+          "Continue Reading",
+          "Subscribe to continue"
+        ],
+        "preserve_patterns": [
+          "Quote:",
+          "Breaking:",
+          "UPDATE:",
+          "EXCLUSIVE:"
+        ]
+      }
+    },
+    
+    "author_info": {
+      "selector": ".author-name, [data-testid='author'], [itemprop='author'], .byline-author",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".byline",
+        ".author",
+        ".writer-name",
+        "[data-module='AuthorBio'] .name"
+      ],
+      "validation": {
+        "min_length": 2,
+        "max_length": 100,
+        "required": false
+      },
+      "extraction_rules": {
+        "remove_prefixes": ["By ", "Written by ", "Reporter: "],
+        "remove_suffixes": [" reports", " writes", " says"],
+        "title_case": true
+      }
+    },
+    
+    "publish_datetime": {
+      "selector": "[itemprop='datePublished'], .publish-date, time[datetime], [data-testid='publish-date']",
+      "type": "text",
+      "auto_save": true,
+      "attribute": "datetime",
+      "fallback_selectors": [
+        ".article-date",
+        ".timestamp",
+        ".published",
+        "[data-module='ArticleDate']"
+      ],
+      "validation": {
+        "date_format_validation": true,
+        "future_date_check": true,
+        "required": false
+      },
+      "extraction_rules": {
+        "normalize_format": "ISO8601",
+        "timezone_handling": "preserve",
+        "relative_time_conversion": true
+      }
+    },
+    
+    "update_datetime": {
+      "selector": "[itemprop='dateModified'], .update-date, .last-updated, [data-testid='update-date']",
+      "type": "text",
+      "auto_save": true,
+      "attribute": "datetime",
+      "fallback_selectors": [
+        ".modified-date",
+        ".updated",
+        ".last-modified"
+      ],
+      "validation": {
+        "after_publish_date": true,
+        "required": false
+      }
+    },
+    
+    "article_summary": {
+      "selector": ".article-summary, .deck, .standfirst, [data-testid='summary']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".lead",
+        ".intro",
+        ".excerpt",
+        ".article-excerpt"
+      ],
+      "validation": {
+        "min_length": 20,
+        "max_length": 1000,
+        "different_from_headline": true,
+        "required": false
+      }
+    },
+    
+    "category_tags": {
+      "selector": ".article-tags a, .category-tags a, [data-testid='tags'] a, [rel='tag']",
+      "type": "all",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".tags a",
+        ".topics a",
+        ".categories a",
+        ".labels a"
+      ],
+      "validation": {
+        "max_count": 20,
+        "min_tag_length": 2,
+        "required": false
+      },
+      "extraction_rules": {
+        "lowercase": true,
+        "remove_duplicates": true,
+        "filter_common_words": true
+      }
+    },
+    
+    "featured_image": {
+      "selector": ".featured-image img, .hero-image img, [data-testid='featured-image'] img, [itemprop='image']",
+      "type": "attribute",
+      "auto_save": true,
+      "attribute": "src",
+      "fallback_selectors": [
+        ".article-image img",
+        ".lead-image img",
+        ".story-image img",
+        ".main-image img"
+      ],
+      "validation": {
+        "url_validation": true,
+        "image_format_check": ["jpg", "jpeg", "png", "webp", "gif"],
+        "min_size_check": true,
+        "required": false
+      },
+      "extraction_rules": {
+        "resolve_relative_urls": true,
+        "prefer_high_resolution": true,
+        "avoid_thumbnails": true
+      }
+    },
+    
+    "image_caption": {
+      "selector": ".image-caption, .photo-caption, figcaption, [data-testid='image-caption']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".caption",
+        ".img-caption",
+        ".figure-caption"
+      ],
+      "validation": {
+        "min_length": 5,
+        "max_length": 500,
+        "required": false
+      }
+    },
+    
+    "source_publication": {
+      "selector": "[itemprop='publisher'], .publication-name, .source-name, [data-testid='publication']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".publisher",
+        ".news-source",
+        ".outlet-name",
+        ".brand-name"
+      ],
+      "validation": {
+        "min_length": 2,
+        "max_length": 100,
+        "required": false
+      }
+    },
+    
+    "article_section": {
+      "selector": "[itemprop='articleSection'], .article-section, .section-name, [data-testid='section']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".section",
+        ".category",
+        ".department",
+        ".topic"
+      ],
+      "validation": {
+        "min_length": 2,
+        "max_length": 50,
+        "required": false
+      }
+    },
+    
+    "social_metrics": {
+      "selector": ".share-count, .social-count, [data-testid='social-metrics']",
+      "type": "multiple",
+      "auto_save": true,
+      "sub_selectors": {
+        "facebook_shares": {
+          "selector": ".facebook-count, [data-network='facebook']",
+          "type": "text"
+        },
+        "twitter_shares": {
+          "selector": ".twitter-count, [data-network='twitter']",
+          "type": "text"
+        },
+        "linkedin_shares": {
+          "selector": ".linkedin-count, [data-network='linkedin']",
+          "type": "text"
+        },
+        "total_shares": {
+          "selector": ".total-shares, .share-total",
+          "type": "text"
+        }
+      },
+      "validation": {
+        "numeric_validation": true,
+        "required": false
+      }
+    },
+    
+    "related_articles": {
+      "selector": ".related-articles a, .recommended-articles a, [data-testid='related'] a",
+      "type": "all",
+      "auto_save": true,
+      "attribute": "href",
+      "fallback_selectors": [
+        ".more-stories a",
+        ".similar-articles a",
+        ".you-might-like a"
+      ],
+      "validation": {
+        "url_validation": true,
+        "internal_links_only": true,
+        "max_count": 10,
+        "required": false
+      },
+      "extraction_rules": {
+        "resolve_relative_urls": true,
+        "filter_duplicates": true,
+        "exclude_self_reference": true
+      }
+    },
+    
+    "comments_count": {
+      "selector": ".comment-count, .comments-count, [data-testid='comment-count']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".discussion-count",
+        ".replies-count",
+        ".feedback-count"
+      ],
+      "validation": {
+        "numeric_validation": true,
+        "required": false
+      },
+      "extraction_rules": {
+        "extract_numbers": true,
+        "handle_abbreviations": true
+      }
+    },
+    
+    "reading_time": {
+      "selector": ".reading-time, .read-time, [data-testid='reading-time']",
+      "type": "text",
+      "auto_save": true,
+      "fallback_selectors": [
+        ".time-to-read",
+        ".estimated-time",
+        ".read-duration"
+      ],
+      "validation": {
+        "time_format_validation": true,
+        "reasonable_range": [1, 60],
+        "required": false
+      }
+    }
+  },
+  
+  "pagination": {
+    "enabled": true,
+    "type": "multi_page_article",
+    "next_selector": ".next-page, .pagination-next, [data-testid='next-page']",
+    "max_pages": 10,
+    "delay_between_pages": [2, 4],
+    "content_concatenation": {
+      "enabled": true,
+      "separator": "\n\n",
+      "preserve_structure": true
+    },
+    "fallback_selectors": [
+      ".page-nav .next",
+      "[aria-label='Next page']",
+      ".article-pagination .next"
+    ]
+  },
+  
+  "post_processing": [
+    {
+      "type": "clean_article_content",
+      "field": "article_body",
+      "params": {
+        "remove_ads": true,
+        "remove_social_widgets": true,
+        "preserve_formatting": true,
+        "min_paragraph_length": 20
+      }
+    },
+    {
+      "type": "extract_quotes",
+      "field": "article_body",
+      "output_field": "extracted_quotes",
+      "params": {
+        "quote_indicators": ["\"", """, """, "blockquote"],
+        "min_quote_length": 10
+      }
+    },
+    {
+      "type": "analyze_content_quality",
+      "field": "article_body",
+      "output_field": "content_quality_metrics",
+      "params": {
+        "readability_analysis": true,
+        "sentiment_analysis": true,
+        "factual_density": true
+      }
+    },
+    {
+      "type": "normalize_datetime",
+      "field": "publish_datetime",
+      "params": {
+        "output_format": "ISO8601",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "type": "normalize_datetime",
+      "field": "update_datetime",
+      "params": {
+        "output_format": "ISO8601",
+        "timezone": "UTC"
+      }
+    },
+    {
+      "type": "extract_entities",
+      "field": "article_body",
+      "output_field": "named_entities",
+      "params": {
+        "entity_types": ["PERSON", "ORG", "GPE", "MONEY", "DATE"],
+        "confidence_threshold": 0.8
+      }
+    },
+    {
+      "type": "calculate_word_count",
+      "field": "article_body",
+      "output_field": "word_count"
+    },
+    {
+      "type": "extract_key_phrases",
+      "field": "article_body",
+      "output_field": "key_phrases",
+      "params": {
+        "max_phrases": 10,
+        "min_phrase_frequency": 2
+      }
+    },
+    {
+      "type": "normalize_urls",
+      "field": "featured_image",
+      "params": {
+        "base_url": "auto_detect",
+        "protocol": "https"
+      }
+    },
+    {
+      "type": "normalize_urls",
+      "field": "related_articles",
+      "params": {
+        "base_url": "auto_detect",
+        "protocol": "https",
+        "remove_tracking_params": true
+      }
+    },
+    {
+      "type": "extract_numbers",
+      "field": "social_metrics",
+      "params": {
+        "handle_abbreviations": true,
+        "currency_detection": false
+      }
+    }
+  ],
+  
+  "validation_rules": {
+    "required_fields": ["headline", "article_body"],
+    "field_types": {
+      "headline": "string",
+      "article_body": "string",
+      "author_info": "string",
+      "publish_datetime": "datetime",
+      "update_datetime": "datetime",
+      "article_summary": "string",
+      "category_tags": "list",
+      "featured_image": "string",
+      "image_caption": "string",
+      "source_publication": "string",
+      "article_section": "string",
+      "social_metrics": "object",
+      "related_articles": "list",
+      "comments_count": "number",
+      "reading_time": "string"
+    },
+    "content_quality_rules": {
+      "min_word_count": 50,
+      "max_advertisement_ratio": 0.3,
+      "content_coherence_check": true,
+      "duplicate_content_check": true
+    },
+    "news_specific_validation": {
+      "headline_quality": {
+        "clickbait_detection": true,
+        "factual_language": true,
+        "appropriate_length": true
+      },
+      "source_credibility": {
+        "known_publication": false,
+        "author_verification": false,
+        "date_consistency": true
+      }
+    }
+  },
+  
+  "content_analysis": {
+    "sentiment_analysis": {
+      "enabled": true,
+      "analyze_headline": true,
+      "analyze_body": true,
+      "sentiment_scale": "positive_negative_neutral"
+    },
+    "topic_classification": {
+      "enabled": true,
+      "categories": ["politics", "business", "technology", "health", "sports", "entertainment"],
+      "confidence_threshold": 0.7
+    },
+    "bias_detection": {
+      "enabled": true,
+      "political_bias": true,
+      "commercial_bias": true,
+      "emotional_language": true
+    },
+    "fact_extraction": {
+      "enabled": true,
+      "extract_claims": true,
+      "extract_statistics": true,
+      "extract_dates_events": true
+    }
+  },
+  
+  "paywall_detection": {
+    "detection_methods": ["content_length", "subscription_indicators", "truncation_patterns"],
+    "indicators": [
+      ".paywall",
+      ".subscription-wall",
+      ".premium-content",
+      "text containing 'subscribe'",
+      "text containing 'premium content'"
+    ],
+    "bypass_strategies": ["google_cache", "archive_org", "reader_mode"],
+    "verification": {
+      "content_completeness_check": true,
+      "expected_word_count": 200
+    }
+  },
+  
+  "error_handling": {
+    "paywall_errors": {
+      "retry_with_bypass": true,
+      "try_alternative_sources": true,
+      "mark_as_premium": true
+    },
+    "content_errors": {
+      "insufficient_content": "retry_with_different_method",
+      "malformed_article": "attempt_readability_extraction",
+      "missing_essential_elements": "flag_for_manual_review"
+    }
+  },
+  
+  "adaptive_selectors": {
+    "enabled": true,
+    "learning_mode": true,
+    "similarity_threshold": 0.85,
+    "news_specific_adaptation": {
+      "publisher_specific_learning": true,
+      "cms_pattern_recognition": true,
+      "content_structure_analysis": true
+    }
+  },
+  
+  "is_active": true,
+  "usage_count": 0,
+  "success_rate": 0.0,
+  "created_at": "2024-01-01T00:00:00Z",
+  "updated_at": "2024-01-01T00:00:00Z",
+  "tags": ["news", "media", "journalism", "advanced", "paywall-bypass"],
+  "difficulty_level": "advanced",
+  "estimated_success_rate": 80,
+  "recommended_use_cases": [
+    "news_monitoring",
+    "media_analysis",
+    "content_aggregation",
+    "journalism_research",
+    "brand_monitoring"
+  ]
+}
