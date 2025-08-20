@@ -71,7 +71,7 @@ dmypy.json
 # Sphinx documentation
 docs/_build/
 # Jupyter Notebook checkpoints
-.ipynb_checkpoints/
-.claude/agents/
-prompts/
-.VSCodeCounter/
+.ipynb_checkpoints/*
+.claude/agents/*
+prompts/*
+.VSCodeCounter/*
