@@ -75,3 +75,5 @@ docs/_build/
 .claude/agents/*
 prompts/*
 .VSCodeCounter/*
+CLAUDE.md
+INTEGRATION_REPORT.md
