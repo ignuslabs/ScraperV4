@@ -26,3 +26,9 @@ pydantic
 # Install browser automation dependencies
 playwright
 playwright-stealth
+
+# Install documentation dependencies
+sphinx
+sphinx-rtd-theme
+myst-parser
+sphinx-copybutton
