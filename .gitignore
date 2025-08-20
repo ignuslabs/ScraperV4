@@ -59,3 +59,19 @@ htmlcov/
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# Pyre type checker
+.pyre/
+# PyLint
+.pylint.d/
+# Coverage reports
+.coverage.*
+.coverage
+*.coveragerc
+# Sphinx documentation
+docs/_build/
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+.claude/agents/
+prompts/
+.VSCodeCounter/
