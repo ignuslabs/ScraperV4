@@ -3,8 +3,22 @@
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![Status: Production Ready](https://img.shields.io/badge/status-production%20ready-green.svg)]()
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Documentation](https://img.shields.io/badge/docs-readthedocs-blue.svg)](https://scraperv4.readthedocs.io/en/latest/)
 
-https://scraperv4.readthedocs.io/en/latest/index.html
+## 📖 **Complete Documentation**
+
+**🌟 [**View Full Documentation →**](https://scraperv4.readthedocs.io/en/latest/)** 
+
+For comprehensive guides, tutorials, API reference, and troubleshooting, visit our complete documentation site.
+
+### Quick Navigation
+- **🚀 [Getting Started](https://scraperv4.readthedocs.io/en/latest/tutorials/getting-started.html)** - New user tutorial  
+- **🎯 [How-To Guides](https://scraperv4.readthedocs.io/en/latest/how-to/)** - Solve specific problems
+- **📚 [API Reference](https://scraperv4.readthedocs.io/en/latest/reference/api/)** - Complete API documentation
+- **⚡ [Playwright Interactive Mode](https://scraperv4.readthedocs.io/en/latest/tutorials/playwright-interactive-mode.html)** - **NEW!** Visual template creation
+- **🔧 [Troubleshooting](https://scraperv4.readthedocs.io/en/latest/troubleshooting/)** - Issues & solutions
+
+---
 
 ## Overview
 
@@ -478,11 +492,11 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Support & Documentation
 
-- **Technical Documentation**: See `/docs/README.md` for comprehensive technical documentation
-- **Integration Guide**: Check `INTEGRATION_REPORT.md` for implementation status
-- **API Reference**: Complete API documentation in `/docs/api/`
-- **User Guides**: Step-by-step guides in `/docs/user-guides/`
-- **Issues**: Report bugs and feature requests via GitHub issues
+- **📖 Complete Documentation**: [scraperv4.readthedocs.io](https://scraperv4.readthedocs.io/en/latest/) - Comprehensive guides and API reference
+- **🔧 Integration Guide**: Check `INTEGRATION_REPORT.md` for implementation status  
+- **📋 Local Documentation**: Source files in `/docs/` directory
+- **🐛 Issues**: Report bugs and feature requests via GitHub issues
+- **💬 Discussions**: Community support in GitHub Discussions
 
 ---
 
