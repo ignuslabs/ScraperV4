@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "scraper-v4"
+version = "4.1.1"
+description = "Advanced web scraping framework with interactive features and Playwright integration"
+authors = [
+    {name = "Masodori", email = "masodori@example.com"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.11"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+dependencies = [
+    "scrapling",
+    "eel",
+    "pandas",
+    "requests",
+    "beautifulsoup4",
+    "lxml",
+    "openpyxl",
+    "python-dotenv",
+    "click",
+    "rich",
+    "pydantic",
+    "playwright",
+    "playwright-stealth",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "mypy",
+]
+
+docs = [
+    "sphinx>=7.0.0",
+    "sphinx-rtd-theme>=2.0.0",
+    "myst-parser>=2.0.0",
+    "sphinx-copybutton>=0.5.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/masodori/ScraperV4"
+Documentation = "https://scraper-v4.readthedocs.io"
+Repository = "https://github.com/masodori/ScraperV4"
+Issues = "https://github.com/masodori/ScraperV4/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-dir]
+"" = "src"

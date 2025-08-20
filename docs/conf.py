@@ -59,13 +59,11 @@ exclude_patterns = [
 ]
 
 # Source file suffixes
-source_suffix = {
-    '.rst': None,
-    '.md': 'myst_parser',
-}
+source_suffix = ['.rst', '.md']
 
 # Master document
 master_doc = 'index'
+root_doc = 'index'
 
 # Language
 language = 'en'
