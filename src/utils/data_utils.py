@@ -27,7 +27,7 @@ def export_to_json(data: Union[Dict[str, Any], List[Dict[str, Any]]],
     return str(export_path)
 
 def export_to_csv(data: List[Dict[str, Any]], filename: Optional[str] = None) -> str:
-    """Export data to CSV format (stub implementation)."""
+    """Export data to CSV format."""
     if filename is None:
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"export_{timestamp}.csv"

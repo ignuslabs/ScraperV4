@@ -510,4 +510,210 @@ def register_api_routes():
                 "error": str(e)
             }
 
+    # Interactive mode routes
+    @eel.expose
+    def start_interactive_mode(url: str) -> Dict[str, Any]:
+        """Start interactive template creation mode."""
+        try:
+            from src.services.interactive_service import InteractiveService
+            from src.core.container import container
+            
+            # Get or create interactive service
+            if not container.has(InteractiveService):
+                container.register_singleton(InteractiveService, InteractiveService)
+            
+            interactive_service = container.get(InteractiveService)
+            
+            # Analyze page structure
+            analysis = interactive_service.analyze_page_structure(url)
+            
+            logger.info(f"Started interactive mode for URL: {url}")
+            
+            return {
+                "success": True,
+                "url": url,
+                "analysis": analysis
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to start interactive mode: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def analyze_element(element_data: Dict) -> Dict[str, Any]:
+        """Analyze selected element and suggest selectors."""
+        try:
+            from src.services.interactive_service import InteractiveService
+            from src.core.container import container
+            
+            interactive_service = container.get(InteractiveService)
+            
+            # Get HTML if provided
+            html = element_data.get('html', '')
+            
+            # Suggest selectors
+            suggestions = interactive_service.suggest_selectors(html, element_data)
+            
+            return {
+                "success": True,
+                "suggestions": suggestions,
+                "element_type": element_data.get('type', 'unknown')
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to analyze element: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def save_interactive_template(template_data: Dict) -> Dict[str, Any]:
+        """Save template created with interactive selector."""
+        try:
+            from src.services.interactive_service import InteractiveService
+            from src.services.template_service import TemplateService
+            from src.core.container import container
+            
+            interactive_service = container.get(InteractiveService)
+            template_service = container.get(TemplateService)
+            
+            # Generate template from selections
+            result = interactive_service.generate_template_from_selection(template_data)
+            
+            if result['success']:
+                template = result['template']
+                
+                # Save template using template service
+                saved = template_service.create_template(
+                    name=template['name'],
+                    selectors=template['selectors'],
+                    description=template.get('description', ''),
+                    fetcher_config=template.get('fetcher_config'),
+                    validation_rules=template.get('validation_rules'),
+                    post_processing=template.get('post_processing')
+                )
+                
+                if saved:
+                    logger.info(f"Interactive template saved: {template['name']}")
+                    return {
+                        "success": True,
+                        "template_name": template['name'],
+                        "validation": result.get('validation', {})
+                    }
+                else:
+                    return {
+                        "success": False,
+                        "error": "Failed to save template"
+                    }
+            else:
+                return result
+            
+        except Exception as e:
+            logger.error(f"Failed to save interactive template: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def test_selector_live(selector: str, url: str) -> Dict[str, Any]:
+        """Test selector on live URL."""
+        try:
+            from src.services.interactive_service import InteractiveService
+            from src.scrapers.template_scraper import TemplateScraper
+            from src.core.container import container
+            
+            interactive_service = container.get(InteractiveService)
+            
+            # Fetch page HTML
+            scraper = TemplateScraper()
+            html = scraper.fetch_page(url)
+            
+            if not html:
+                return {
+                    "success": False,
+                    "error": "Failed to fetch page"
+                }
+            
+            # Validate selector
+            result = interactive_service.validate_selector(selector, html)
+            
+            return {
+                "success": True,
+                "valid": result['valid'],
+                "count": result['count'],
+                "samples": result.get('samples', []),
+                "quality": result.get('quality', 0)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to test selector: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def get_detail_page_suggestions(url: str) -> Dict[str, Any]:
+        """Get suggestions for detail page extraction."""
+        try:
+            from src.scrapers.detail_page_analyzer import DetailPageAnalyzer
+            
+            analyzer = DetailPageAnalyzer()
+            suggestions = analyzer.analyze_detail_page(url)
+            
+            return {
+                "success": True,
+                "suggestions": suggestions,
+                "url": url
+            }
+            
+        except ImportError:
+            logger.warning("Detail page analyzer not available")
+            return {
+                "success": False,
+                "error": "Detail page analyzer not implemented yet"
+            }
+        except Exception as e:
+            logger.error(f"Failed to get detail page suggestions: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def apply_learning_correction(correction_data: Dict) -> Dict[str, Any]:
+        """Apply user correction for learning."""
+        try:
+            from src.services.interactive_service import InteractiveService
+            from src.core.container import container
+            
+            interactive_service = container.get(InteractiveService)
+            
+            # Apply correction
+            success = interactive_service.apply_learning_corrections(correction_data)
+            
+            if success:
+                logger.info(f"Applied learning correction for domain: {correction_data.get('domain', 'general')}")
+                return {
+                    "success": True,
+                    "message": "Correction applied successfully"
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to apply correction"
+                }
+            
+        except Exception as e:
+            logger.error(f"Failed to apply learning correction: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
     logger.info("API routes registered successfully")

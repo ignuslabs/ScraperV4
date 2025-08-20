@@ -1,0 +1,12 @@
+{
+  "name": "test_template",
+  "selectors": {
+    "title": "h1::text"
+  },
+  "pagination": {
+    "enabled": true
+  },
+  "usage_count": 9,
+  "success_rate": 100.0,
+  "updated_at": "2025-08-17T12:36:02.850921+00:00"
+}

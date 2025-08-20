@@ -1,12 +1,23 @@
 """Main application entry point for ScraperV4."""
 
 import sys
+import os
+import signal
 from pathlib import Path
 from src.core.config import config
 from src.core.container import container
 from src.utils.logging_utils import setup_logging, get_logger
 from src.web.eel_app import EelApp
 from src.web.api_routes import register_api_routes
+
+def signal_handler(sig, frame):
+    """Handle interrupt signals."""
+    print("\nShutting down gracefully...")
+    os._exit(0)
+
+# Register signal handlers
+signal.signal(signal.SIGINT, signal_handler)
+signal.signal(signal.SIGTERM, signal_handler)
 
 def setup_application():
     """Set up application components."""

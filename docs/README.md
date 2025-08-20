@@ -3,12 +3,13 @@
 ## Table of Contents
 
 1. [Architecture Overview](#architecture-overview)
-2. [Core Components](#core-components)
-3. [API Reference](#api-reference)
-4. [Frontend Integration](#frontend-integration)
-5. [Advanced Features](#advanced-features)
-6. [Testing & Development](#testing--development)
-7. [Troubleshooting](#troubleshooting)
+2. [Interactive Visual Template Creation](#interactive-visual-template-creation)
+3. [Core Components](#core-components)
+4. [API Reference](#api-reference)
+5. [Frontend Integration](#frontend-integration)
+6. [Advanced Features](#advanced-features)
+7. [Testing & Development](#testing--development)
+8. [Troubleshooting](#troubleshooting)
 
 ## Architecture Overview
 
@@ -24,6 +25,7 @@ ScraperV4 follows a modular, service-oriented architecture with clear separation
 │  │ • Progress Monitor     │    │ • Input Validation │   │
 │  │ • Template Manager     │    │ • Error Handling   │   │
 │  │ • Results Viewer       │    │ • Response Format  │   │
+│  │ • Interactive Selector │    │ • Visual Creation  │   │
 │  └────────────────────────┘    └────────────────────┘   │
 │                          ↓                              │
 └─────────────────────────────────────────────────────────┘
@@ -33,6 +35,7 @@ ScraperV4 follows a modular, service-oriented architecture with clear separation
 │  │ • ScrapingService    │ ←→ │ • Service Container    │ │
 │  │ • DataService        │    │ • Configuration        │ │
 │  │ • TemplateService    │    │ • Lifecycle Mgmt       │ │
+│  │ • InteractiveService │    │ • Pattern Recognition  │ │
 │  └──────────────────────┘    └────────────────────────┘ │
 │                          ↓                              │
 └─────────────────────────────────────────────────────────┘
@@ -72,7 +75,8 @@ src/
 │   ├── base_service.py       # Base service class
 │   ├── scraping_service.py   # Scraping operations & job management
 │   ├── template_service.py   # Template CRUD & validation
-│   └── data_service.py       # Data processing & export
+│   ├── data_service.py       # Data processing & export
+│   └── interactive_service.py # Interactive visual template creation
 ├── scrapers/                  # Scraping implementation layer
 │   ├── base_scraper.py       # Base scraper interface
 │   ├── stealth_fetcher.py    # Anti-detection fetching
@@ -92,6 +96,103 @@ src/
     ├── data_utils.py         # Data export utilities
     └── validation_utils.py   # Input validation helpers
 ```
+
+## Interactive Visual Template Creation
+
+ScraperV4 features a powerful interactive visual template creation system that allows users to create scraping templates through point-and-click interactions without writing code.
+
+### Key Features
+
+- **Visual Element Selection**: Click on elements to add them to your template
+- **AI-Powered Auto-Detection**: Automatically identifies patterns and suggests fields
+- **Container Recognition**: Detects repeating elements for list/grid extraction
+- **Real-time Validation**: Test selectors as you build your template
+- **Learning System**: Improves pattern recognition from user corrections
+- **Cross-Site Reusability**: Templates adapt to similar website structures
+
+### Quick Start
+
+1. **Access Interactive Mode**
+   ```javascript
+   // Click the Interactive Mode button in Template Manager
+   // Or programmatically:
+   await eel.start_interactive_mode('https://target-site.com')();
+   ```
+
+2. **Select Elements Visually**
+   - Hover over elements to highlight them
+   - Click to select and add to template
+   - Use container mode for repeating elements
+
+3. **Auto-Detection**
+   ```javascript
+   // System automatically detects:
+   - Site type (e-commerce, news, directory)
+   - Product containers and fields
+   - Pagination elements
+   - Common patterns (prices, titles, images)
+   ```
+
+4. **Save and Export**
+   - Templates are automatically generated from selections
+   - Export for reuse across similar sites
+   - Includes fallback selectors for robustness
+
+### Architecture Components
+
+#### Frontend (JavaScript)
+- **InteractiveOverlay**: Visual selection interface
+- **AutoDetector**: Pattern recognition engine
+- **SelectorGenerator**: Creates robust CSS/XPath selectors
+- **SimilarityScorer**: Finds matching elements
+
+#### Backend (Python)
+- **InteractiveService**: Orchestrates template generation
+- **PatternRecognizer**: Classifies sites and detects patterns
+- **LearningSystem**: Improves detection through corrections
+- **TemplateGenerator**: Creates templates from selections
+
+### Interactive API
+
+```python
+# Python API
+from src.services.interactive_service import InteractiveService
+
+service = InteractiveService()
+analysis = service.analyze_page_structure(url)
+template = service.generate_template_from_selection(selections)
+```
+
+```javascript
+// JavaScript API
+const overlay = new InteractiveOverlay({
+    targetDocument: document,
+    callbacks: {
+        onElementSelected: handleSelection,
+        onContainerFound: handleContainer
+    }
+});
+
+// Auto-detect patterns
+const detector = new AutoDetector();
+const siteType = detector.detectSiteType(document);
+const containers = detector.detectContainers(document);
+```
+
+### Documentation
+
+- **[Interactive Selection Tutorial](/docs/tutorials/interactive-selection.md)**: Step-by-step guide to using the interactive selector
+- **[Visual Template Creation Guide](/docs/how-to/visual-template-creation.md)**: Practical recipes for common scenarios
+- **[Interactive Architecture](/docs/explanations/interactive-architecture.md)**: Deep dive into system architecture and design
+- **[Interactive API Reference](/docs/reference/interactive-api.md)**: Complete API documentation
+
+### Benefits
+
+1. **Accessibility**: No coding required - anyone can create templates
+2. **Speed**: Visual selection is faster than writing selectors
+3. **Accuracy**: AI assistance reduces errors
+4. **Adaptability**: Templates self-heal when sites change
+5. **Learning**: System improves over time
 
 ## Core Components
 
@@ -181,6 +282,45 @@ async def test_template(self, template_id: str, test_url: str) -> Dict[str, Any]
     # Returns actual extracted data samples
     # Updates template statistics based on results
     # Provides detailed validation feedback
+```
+
+#### InteractiveService (`src/services/interactive_service.py`)
+
+**Primary Functions:**
+- Visual template creation through point-and-click
+- AI-powered pattern recognition
+- Learning from user corrections
+- Template generation from selections
+
+**Key Methods:**
+```python
+class InteractiveService:
+    def analyze_page_structure(url: str) -> Dict[str, Any]:
+        """Analyze page for interactive selection."""
+        
+    def suggest_selectors(html: str, element_info: Dict) -> List[str]:
+        """Generate selector suggestions."""
+        
+    def validate_selector(selector: str, html: str) -> Dict[str, Any]:
+        """Validate selector against HTML."""
+        
+    def generate_template_from_selection(selections: Dict) -> Dict[str, Any]:
+        """Create template from visual selections."""
+        
+    def apply_learning_corrections(corrections: Dict) -> bool:
+        """Learn from user corrections."""
+```
+
+**Pattern Recognition:**
+```python
+def detect_patterns(self, soup: BeautifulSoup) -> Dict[str, Any]:
+    """Detect common patterns in web pages."""
+    # Identifies:
+    # - E-commerce product listings
+    # - News articles
+    # - Directory listings
+    # - Real estate properties
+    # Returns confidence scores and suggestions
 ```
 
 ### Scraper Layer

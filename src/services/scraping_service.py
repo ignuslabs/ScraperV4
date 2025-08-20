@@ -76,6 +76,7 @@ class ScrapingService(BaseService):
     
     def __init__(self):
         super().__init__()
+        self.active_tasks = {}  # Track running async tasks for cancellation
     
     def create_job(self, name: str, template_id: str, target_url: str,
                    config: Optional[Dict[str, Any]] = None,
@@ -228,6 +229,10 @@ class ScrapingService(BaseService):
                     "result_id": result_id
                 })
                 
+                # Clean up task reference
+                if job_id in self.active_tasks:
+                    del self.active_tasks[job_id]
+                
                 # Update template statistics
                 self.template_manager.update_template_stats(
                     template_name, 
@@ -236,7 +241,10 @@ class ScrapingService(BaseService):
                 
             except asyncio.CancelledError:
                 # Handle job cancellation
-                self.job_manager.update_job_status(job_id, "stopped")
+                self.job_manager.update_job_status(job_id, "cancelled")
+                # Clean up task reference if it still exists
+                if job_id in self.active_tasks:
+                    del self.active_tasks[job_id]
                 raise
                 
         except Exception as e:
@@ -247,6 +255,10 @@ class ScrapingService(BaseService):
                 "error_message": str(e),
                 "items_failed": items_failed or 1
             })
+            
+            # Clean up task reference
+            if job_id in self.active_tasks:
+                del self.active_tasks[job_id]
             
             # Update template statistics with failure
             if template_name:
@@ -271,8 +283,9 @@ class ScrapingService(BaseService):
     def start_scraping_job(self, job_id: str) -> bool:
         """Start a scraping job."""
         try:
-            # Create async task to execute the job
-            asyncio.create_task(self.execute_job_async(job_id))
+            # Create async task to execute the job and store reference for cancellation
+            task = asyncio.create_task(self.execute_job_async(job_id))
+            self.active_tasks[job_id] = task
             return True
         except Exception as e:
             import logging
@@ -281,9 +294,14 @@ class ScrapingService(BaseService):
             return False
     
     def stop_scraping_job(self, job_id: str) -> bool:
-        """Stop a running scraping job (stub implementation)."""
-        # Update job status to stopped
-        return self.job_manager.update_job_status(job_id, "stopped")
+        """Stop a running scraping job."""
+        # Cancel the async task if it exists
+        if job_id in self.active_tasks:
+            self.active_tasks[job_id].cancel()
+            del self.active_tasks[job_id]
+        
+        # Update job status to cancelled
+        return self.job_manager.update_job_status(job_id, "cancelled")
     
     def get_job_status(self, job_id: str) -> Optional[Dict[str, Any]]:
         """Get the current status of a scraping job."""

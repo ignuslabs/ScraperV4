@@ -78,31 +78,92 @@ class AdaptiveSelector:
     
     def suggest_selector_improvements(self, field_name: str, failed_selector: str, 
                                     page_content: Any) -> List[Dict[str, Any]]:
-        """Suggest improved selectors based on page analysis (stub implementation)."""
+        """Suggest improved selectors based on page analysis."""
         suggestions = []
         
         # Analyze selector failure patterns
         failure_analysis = self._analyze_selector_failure(failed_selector, page_content)
+        likely_cause = failure_analysis.get('likely_cause')
+        analysis_suggestions = failure_analysis.get('suggestions', [])
         
         # Generate suggestions based on analysis
-        if failure_analysis.get('likely_cause') == 'class_changed':
+        if likely_cause == 'class_changed':
+            modified_selector = self._modify_selector_for_class_change(failed_selector)
             suggestions.append({
-                'selector': self._modify_selector_for_class_change(failed_selector),
+                'selector': modified_selector,
                 'reason': 'Adapted for potential class name changes',
-                'confidence': 0.7
+                'confidence': 0.8
             })
+            
+            # Add suggestions from failure analysis
+            for suggestion in analysis_suggestions:
+                suggestions.append({
+                    'selector': suggestion,
+                    'reason': 'Similar class pattern found',
+                    'confidence': 0.7
+                })
         
-        if failure_analysis.get('likely_cause') == 'structure_changed':
+        elif likely_cause == 'id_changed':
+            # Add ID-based suggestions
+            for suggestion in analysis_suggestions:
+                suggestions.append({
+                    'selector': suggestion,
+                    'reason': 'Similar ID pattern found',
+                    'confidence': 0.7
+                })
+        
+        elif likely_cause == 'structure_changed':
+            modified_selector = self._modify_selector_for_structure_change(failed_selector)
             suggestions.append({
-                'selector': self._modify_selector_for_structure_change(failed_selector),
+                'selector': modified_selector,
                 'reason': 'Adapted for DOM structure changes',
                 'confidence': 0.6
             })
+            
+            # Add structural suggestions from analysis
+            for suggestion in analysis_suggestions:
+                suggestions.append({
+                    'selector': suggestion,
+                    'reason': 'Simplified selector path',
+                    'confidence': 0.6
+                })
+        
+        elif likely_cause == 'selector_too_specific':
+            # Add simplified suggestions
+            for suggestion in analysis_suggestions:
+                suggestions.append({
+                    'selector': suggestion,
+                    'reason': 'Less specific selector',
+                    'confidence': 0.7
+                })
+        
+        elif likely_cause == 'element_removed':
+            # Look for alternative patterns for this field type
+            field_patterns = self._get_common_patterns_for_field(field_name)
+            for pattern in field_patterns:
+                suggestions.append({
+                    'selector': pattern,
+                    'reason': f'Common pattern for {field_name} fields',
+                    'confidence': 0.5
+                })
+        
+        # Add intelligent fallback suggestions based on field name
+        intelligent_fallbacks = self._generate_intelligent_fallbacks(field_name, failed_selector, page_content)
+        suggestions.extend(intelligent_fallbacks)
         
         # Generic fallback suggestions
-        suggestions.extend(self._generate_generic_fallbacks(failed_selector))
+        generic_fallbacks = self._generate_generic_fallbacks(failed_selector)
+        suggestions.extend(generic_fallbacks)
         
-        return sorted(suggestions, key=lambda x: x['confidence'], reverse=True)
+        # Remove duplicates and sort by confidence
+        unique_suggestions = []
+        seen_selectors = set()
+        for suggestion in suggestions:
+            if suggestion['selector'] not in seen_selectors:
+                unique_suggestions.append(suggestion)
+                seen_selectors.add(suggestion['selector'])
+        
+        return sorted(unique_suggestions, key=lambda x: x['confidence'], reverse=True)[:10]  # Limit to top 10
     
     def learn_from_success(self, field_name: str, successful_selector: str, 
                           page_content: Any) -> None:
@@ -265,6 +326,55 @@ class AdaptiveSelector:
         
         return []
     
+    def _generate_intelligent_fallbacks(self, field_name: str, failed_selector: str, page_content: Any) -> List[Dict[str, Any]]:
+        """Generate intelligent fallback suggestions based on field type and page content."""
+        suggestions = []
+        
+        try:
+            # Get field-specific patterns
+            field_patterns = self._get_common_patterns_for_field(field_name)
+            
+            # Test each pattern against the current page
+            for pattern in field_patterns:
+                if hasattr(page_content, 'css'):
+                    elements = page_content.css(pattern)
+                    if elements:
+                        # Calculate confidence based on number of matches and field relevance
+                        confidence = min(0.8, 0.3 + (len(elements) * 0.1))
+                        suggestions.append({
+                            'selector': pattern,
+                            'reason': f'Field-specific pattern for {field_name}',
+                            'confidence': confidence
+                        })
+            
+            # Try data attributes for the field
+            data_attrs = [
+                f'[data-{field_name}]',
+                f'[data-testid*="{field_name}"]',
+                f'[data-cy*="{field_name}"]',
+                f'[id*="{field_name}"]',
+                f'[class*="{field_name}"]'
+            ]
+            
+            for attr in data_attrs:
+                if hasattr(page_content, 'css'):
+                    try:
+                        elements = page_content.css(attr)
+                        if elements:
+                            suggestions.append({
+                                'selector': attr,
+                                'reason': f'Data attribute pattern for {field_name}',
+                                'confidence': 0.6
+                            })
+                    except:
+                        continue
+        
+        except Exception:
+            # Return empty list if analysis fails
+            pass
+        
+        return suggestions
+    
     def _record_success(self, field_name: str, selector: str) -> None:
         """Record successful selector usage."""
         if field_name not in self.success_history:
@@ -290,13 +400,83 @@ class AdaptiveSelector:
         pass
     
     def _analyze_selector_failure(self, selector: str, page_content: Any) -> Dict[str, Any]:
-        """Analyze why a selector might have failed (stub implementation)."""
-        # DOM analysis logic can be enhanced with actual parsing if needed
-        return {
-            'likely_cause': 'structure_changed',
-            'confidence': 0.6,
-            'suggestions': []
-        }
+        """Analyze why a selector might have failed."""
+        try:
+            # Check if we have valid page content to analyze
+            if not hasattr(page_content, 'css'):
+                return {
+                    'likely_cause': 'invalid_page_content',
+                    'confidence': 0.9,
+                    'suggestions': ['Ensure page content is properly loaded']
+                }
+            
+            # Parse the selector to understand what we're looking for
+            suggestions = []
+            
+            # Class-based selector analysis
+            if '.' in selector:
+                class_name = selector.split('.')[-1].split(':')[0].split('[')[0]
+                # Check for similar class names
+                similar_classes = page_content.css(f'[class*="{class_name[:4]}"]')
+                if similar_classes:
+                    suggestions.append(f'Try: [class*="{class_name[:4]}"]')
+                    return {
+                        'likely_cause': 'class_changed',
+                        'confidence': 0.8,
+                        'suggestions': suggestions
+                    }
+            
+            # ID-based selector analysis  
+            if '#' in selector:
+                element_id = selector.split('#')[-1].split(':')[0].split('[')[0]
+                # Check for similar IDs
+                similar_ids = page_content.css(f'[id*="{element_id[:4]}"]')
+                if similar_ids:
+                    suggestions.append(f'Try: [id*="{element_id[:4]}"]')
+                    return {
+                        'likely_cause': 'id_changed',
+                        'confidence': 0.8,
+                        'suggestions': suggestions
+                    }
+            
+            # Element-based selector analysis
+            element_type = selector.split('.')[0].split('#')[0].split(':')[0].split('[')[0].strip()
+            if element_type and element_type.isalpha():
+                # Check if elements of this type exist
+                elements = page_content.css(element_type)
+                if elements:
+                    suggestions.append(f'Try: {element_type}')
+                    return {
+                        'likely_cause': 'selector_too_specific',
+                        'confidence': 0.7,
+                        'suggestions': suggestions
+                    }
+            
+            # Check for common alternative patterns
+            if selector.count(' ') > 2:
+                # Try shorter paths
+                parts = selector.split(' ')
+                suggestions.append(' '.join(parts[-2:]))
+                suggestions.append(parts[-1])
+                return {
+                    'likely_cause': 'structure_changed',
+                    'confidence': 0.6,
+                    'suggestions': suggestions
+                }
+            
+            # Default case - element completely missing
+            return {
+                'likely_cause': 'element_removed',
+                'confidence': 0.5,
+                'suggestions': ['Element may no longer exist on the page']
+            }
+            
+        except Exception as e:
+            return {
+                'likely_cause': 'analysis_error',
+                'confidence': 0.3,
+                'suggestions': [f'Analysis failed: {str(e)}']
+            }
     
     def _modify_selector_for_class_change(self, selector: str) -> str:
         """Modify selector to handle class name changes."""

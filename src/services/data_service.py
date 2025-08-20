@@ -1,7 +1,7 @@
 """Data processing service."""
 
 from typing import Dict, Any, List, Optional, Union
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 import json
 import csv
@@ -35,7 +35,7 @@ class ResultData:
         timestamp = self._data.get('scraped_at', self._data.get('created_at'))
         if timestamp:
             return datetime.fromisoformat(timestamp)
-        return datetime.utcnow()
+        return datetime.now(timezone.utc)
     
     @property
     def status(self):
@@ -338,4 +338,4 @@ class DataService(BaseService):
     
     def _get_current_timestamp(self) -> str:
         """Get current timestamp in ISO format."""
-        return datetime.utcnow().isoformat()
+        return datetime.now(timezone.utc).isoformat()

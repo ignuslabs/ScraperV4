@@ -29,6 +29,17 @@ class ServiceContainer:
         with self._lock:
             self._singletons[interface] = instance
     
+    def has(self, interface: Type[T]) -> bool:
+        """Check if a service is registered."""
+        with self._lock:
+            return (interface in self._singletons or 
+                    interface in self._factories or 
+                    interface in self._services)
+    
+    def get(self, interface: Type[T]) -> T:
+        """Get a service instance (alias for resolve)."""
+        return self.resolve(interface)
+    
     def resolve(self, interface: Type[T]) -> T:
         """Resolve a service instance."""
         with self._lock:

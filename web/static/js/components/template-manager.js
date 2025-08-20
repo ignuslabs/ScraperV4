@@ -33,6 +33,15 @@ class TemplateManager {
         if (newTemplateBtn) {
             newTemplateBtn.addEventListener('click', this.showCreateTemplateModal.bind(this));
         }
+        
+        // Interactive mode button
+        const interactiveBtn = document.getElementById('interactive-mode-btn');
+        if (interactiveBtn) {
+            interactiveBtn.addEventListener('click', this.startInteractiveMode.bind(this));
+        } else {
+            // Create the button if it doesn't exist
+            this.createInteractiveModeButton();
+        }
     }
 
     /**
@@ -1557,6 +1566,144 @@ class TemplateManager {
                 </button>
             </div>
         `;
+    }
+    
+    /**
+     * Create interactive mode button
+     */
+    createInteractiveModeButton() {
+        // Find the header or toolbar area
+        const header = document.querySelector('.templates-header') || 
+                      document.querySelector('.page-header') ||
+                      document.querySelector('.toolbar');
+        
+        if (header) {
+            // Check if button already exists
+            if (document.getElementById('interactive-mode-btn')) return;
+            
+            // Create button
+            const button = document.createElement('button');
+            button.id = 'interactive-mode-btn';
+            button.className = 'btn btn-success';
+            button.innerHTML = '<i class="fas fa-mouse-pointer"></i> Interactive Mode';
+            button.title = 'Create template by selecting elements visually';
+            button.style.cssText = 'margin-left: 10px;';
+            
+            // Add click handler
+            button.addEventListener('click', this.startInteractiveMode.bind(this));
+            
+            // Find new template button and add next to it
+            const newTemplateBtn = document.getElementById('new-template-btn');
+            if (newTemplateBtn && newTemplateBtn.parentElement) {
+                newTemplateBtn.parentElement.appendChild(button);
+            } else if (header) {
+                // Add to header if no new template button found
+                header.appendChild(button);
+            }
+            
+            if (window.logger) {
+                window.logger.info('TemplateManager', 'Interactive mode button created');
+            }
+        }
+    }
+    
+    /**
+     * Start interactive template creation mode
+     */
+    async startInteractiveMode() {
+        if (window.logger) {
+            window.logger.info('TemplateManager', 'Starting interactive mode');
+        }
+        
+        // Prompt for URL
+        const url = prompt('Enter the URL to create a template for:');
+        if (!url) return;
+        
+        // Validate URL
+        try {
+            new URL(url);
+        } catch (error) {
+            if (window.notifications) {
+                window.notifications.error('Invalid URL provided');
+            } else {
+                alert('Invalid URL provided');
+            }
+            return;
+        }
+        
+        // Always use new window due to CORS restrictions
+        this.startInteractiveModeInNewWindow(url);
+    }
+    
+    /**
+     * Start interactive mode in new window
+     */
+    startInteractiveModeInNewWindow(url) {
+        // Create a proxy page that loads the target site's content
+        const proxyUrl = `/interactive-proxy.html?url=${encodeURIComponent(url)}`;
+        
+        // Open our proxy page in a new window
+        const newWindow = window.open(proxyUrl, 'interactive_mode', 'width=1200,height=800');
+        
+        if (!newWindow || newWindow.closed || typeof newWindow.closed == 'undefined') {
+            // Pop-up was blocked
+            if (window.notifications) {
+                window.notifications.error(
+                    'Pop-up Blocked',
+                    'Please allow pop-ups for this site to use Interactive Mode. Click the pop-up blocker icon in your browser\'s address bar.'
+                );
+            } else {
+                alert('Pop-up Blocked!\n\nPlease allow pop-ups for this site to use Interactive Mode.\n\nClick the pop-up blocker icon in your browser\'s address bar and select "Always allow pop-ups from this site".');
+            }
+            return;
+        }
+        
+        // Listen for messages from the interactive window
+        window.addEventListener('message', (event) => {
+            // Verify the message is from our window
+            if (event.source !== newWindow) return;
+            
+            if (event.data && event.data.type === 'template_created') {
+                this.handleInteractiveTemplateCreated(event.data.template);
+                newWindow.close();
+            } else if (event.data && event.data.type === 'interactive_ready') {
+                // Send the URL to analyze
+                newWindow.postMessage({
+                    type: 'analyze_url',
+                    url: url
+                }, '*');
+            }
+        });
+    }
+    
+    /**
+     * Handle template created from interactive mode
+     */
+    async handleInteractiveTemplateCreated(template) {
+        if (window.logger) {
+            window.logger.info('TemplateManager', 'Template created from interactive mode', template);
+        }
+        
+        // Save template via API
+        if (window.eel) {
+            try {
+                const result = await eel.create_template(template)();
+                if (result.success) {
+                    if (window.notifications) {
+                        window.notifications.success('Template created successfully!');
+                    }
+                    // Reload templates
+                    this.loadTemplates();
+                } else {
+                    throw new Error(result.error || 'Failed to save template');
+                }
+            } catch (error) {
+                console.error('Failed to save template:', error);
+                if (window.notifications) {
+                    window.notifications.error('Failed to save template: ' + error.message);
+                }
+            }
+        }
     }
 }
 

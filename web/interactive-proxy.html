@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Template Creator - ScraperV4</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: #0a0a0f;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        #toolbar {
+            background: #0f0f14;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 12px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 2147483647;
+        }
+        
+        #toolbar h2 {
+            margin: 0;
+            font-size: 16px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        
+        #toolbar-buttons {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .toolbar-btn {
+            padding: 6px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            color: #a1a1aa;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s ease-out;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .toolbar-btn:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.12);
+            color: #ffffff;
+        }
+        
+        .toolbar-btn.active {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3b82f6;
+            color: #3b82f6;
+        }
+        
+        .toolbar-btn.primary {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: #10b981;
+            color: #10b981;
+        }
+        
+        .toolbar-btn.primary:hover {
+            background: rgba(16, 185, 129, 0.2);
+        }
+        
+        .toolbar-btn.danger {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        
+        .toolbar-btn.danger:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        #status {
+            color: #a1a1aa;
+            font-size: 12px;
+            padding: 4px 8px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.375rem;
+        }
+        
+        #content-frame {
+            flex: 1;
+            width: 100%;
+            border: none;
+            background: white;
+            position: relative;
+        }
+        
+        #loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+            color: #a1a1aa;
+        }
+        
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top: 3px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        #selection-panel {
+            position: fixed;
+            right: 20px;
+            top: 70px;
+            width: 300px;
+            max-height: calc(100vh - 90px);
+            background: #0f0f14;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.75rem;
+            padding: 16px;
+            overflow-y: auto;
+            display: none;
+            z-index: 2147483646;
+        }
+        
+        #selection-panel.active {
+            display: block;
+        }
+        
+        #selection-panel h3 {
+            margin: 0 0 12px 0;
+            font-size: 14px;
+            color: #ffffff;
+            font-weight: 500;
+        }
+        
+        .selection-item {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 0.5rem;
+            padding: 10px;
+            margin-bottom: 8px;
+        }
+        
+        .selection-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+        }
+        
+        .selection-item-name {
+            font-weight: 500;
+            color: #ffffff;
+            font-size: 13px;
+        }
+        
+        .selection-item-selector {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            font-size: 11px;
+            color: #71717a;
+            word-break: break-all;
+        }
+        
+        .remove-btn {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 2px 6px;
+            border-radius: 0.25rem;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.15s ease-out;
+        }
+        
+        .remove-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+        
+        #error-message {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #0f0f14;
+            border: 1px solid #ef4444;
+            color: #ffffff;
+            padding: 24px;
+            border-radius: 0.75rem;
+            text-align: center;
+            z-index: 2147483647;
+            box-shadow: 0 16px 32px rgba(0, 0, 0, 0.5);
+        }
+        
+        #error-message h3 {
+            color: #ef4444;
+            margin: 0 0 12px 0;
+            font-size: 16px;
+        }
+        
+        #error-message p {
+            color: #a1a1aa;
+            margin: 0 0 16px 0;
+            font-size: 14px;
+        }
+        
+        #error-message button {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid #ef4444;
+            padding: 6px 16px;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s ease-out;
+        }
+        
+        #error-message button:hover {
+            background: rgba(239, 68, 68, 0.2);
+        }
+    </style>
+</head>
+<body>
+    <div id="toolbar">
+        <h2 id="page-title">Interactive Template Creator</h2>
+        <div id="toolbar-buttons">
+            <button class="toolbar-btn" id="add-field-btn">
+                <span>Add Field</span>
+            </button>
+            <button class="toolbar-btn" id="add-container-btn">
+                <span>Add Container</span>
+            </button>
+            <button class="toolbar-btn" id="auto-detect-btn">
+                <span>Auto-Detect</span>
+            </button>
+            <button class="toolbar-btn primary" id="test-btn">
+                <span>Test</span>
+            </button>
+            <button class="toolbar-btn primary" id="save-btn">
+                <span>Save Template</span>
+            </button>
+            <button class="toolbar-btn danger" id="close-btn">
+                <span>Close</span>
+            </button>
+        </div>
+        <div id="status">Ready</div>
+    </div>
+    
+    <iframe id="content-frame"></iframe>
+    
+    <div id="loading">
+        <div class="spinner"></div>
+        <div>Loading target page...</div>
+    </div>
+    
+    <div id="selection-panel">
+        <h3>Selected Elements</h3>
+        <div id="selections-list"></div>
+    </div>
+    
+    <div id="error-message">
+        <h3>Error</h3>
+        <p id="error-text"></p>
+        <button onclick="document.getElementById('error-message').style.display='none'">OK</button>
+    </div>
+    
+    <!-- Load Eel to communicate with backend -->
+    <script type="text/javascript" src="/eel.js"></script>
+    
+    <!-- Load the interactive overlay and auto-detector -->
+    <script src="/static/js/components/interactive-selector/auto-detector.js"></script>
+    
+    <script>
+        // Get URL from query parameter
+        const urlParams = new URLSearchParams(window.location.search);
+        const targetUrl = urlParams.get('url');
+        
+        let interactiveOverlay = null;
+        let selections = {
+            fields: {},
+            containers: {}
+        };
+        
+        // Update page title
+        if (targetUrl) {
+            document.getElementById('page-title').textContent = `Interactive Template Creator - ${new URL(targetUrl).hostname}`;
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            if (!targetUrl) {
+                showError('No URL provided');
+                return;
+            }
+            
+            // Notify parent window we're ready
+            if (window.opener) {
+                window.opener.postMessage({ type: 'interactive_ready' }, '*');
+            }
+            
+            // Load the target page content via backend
+            await loadTargetPage(targetUrl);
+        });
+        
+        // Load target page content
+        async function loadTargetPage(url) {
+            try {
+                document.getElementById('loading').style.display = 'block';
+                updateStatus('Fetching page content...');
+                
+                // Use backend to fetch the page HTML
+                const result = await eel.start_interactive_mode(url)();
+                
+                if (!result.success) {
+                    throw new Error(result.error || 'Failed to load page');
+                }
+                
+                // Load the HTML into iframe
+                const iframe = document.getElementById('content-frame');
+                iframe.onload = () => {
+                    initializeInteractiveMode(iframe);
+                    document.getElementById('loading').style.display = 'none';
+                };
+                
+                // Create a data URL with the fetched HTML
+                // First, we need to fetch the actual HTML content
+                const fetchResult = await eel.test_selector(url, 'body')();
+                if (fetchResult.success && fetchResult.sample_data) {
+                    // For now, open the URL directly in iframe
+                    // In production, you'd want to proxy this through your backend
+                    iframe.src = url;
+                } else {
+                    // Fallback: try direct loading
+                    iframe.src = url;
+                }
+                
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                showError(`Failed to load page: ${error.message}`);
+            }
+        }
+        
+        // Initialize interactive mode on iframe content
+        function initializeInteractiveMode(iframe) {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                
+                // Inject the interactive overlay script
+                const overlayScript = document.createElement('script');
+                overlayScript.textContent = `
+                    // Interactive overlay code
+                    (function() {
+                        ${getInteractiveOverlayCode()}
+                        
+                        // Initialize the overlay
+                        window.interactiveOverlay = new InteractiveOverlay({
+                            targetDocument: document,
+                            mode: 'embedded',
+                            callbacks: {
+                                onElementSelected: (element, selector, name) => {
+                                    window.parent.postMessage({
+                                        type: 'element_selected',
+                                        data: { selector, name, html: element.outerHTML }
+                                    }, '*');
+                                },
+                                onContainerFound: (container) => {
+                                    window.parent.postMessage({
+                                        type: 'container_found',
+                                        data: container
+                                    }, '*');
+                                }
+                            }
+                        });
+                        
+                        window.interactiveOverlay.initialize();
+                    })();
+                `;
+                iframeDoc.head.appendChild(overlayScript);
+                
+                // Inject styles
+                const styles = document.createElement('style');
+                styles.textContent = getInteractiveOverlayStyles();
+                iframeDoc.head.appendChild(styles);
+                
+                updateStatus('Interactive mode ready');
+                
+            } catch (error) {
+                // CORS error - use alternative approach
+                console.warn('Cannot access iframe due to CORS, using alternative approach');
+                useAlternativeApproach();
+            }
+        }
+        
+        // Alternative approach for CORS-blocked sites
+        function useAlternativeApproach() {
+            updateStatus('Using proxy mode due to CORS restrictions');
+            
+            // Show instruction to user
+            const iframe = document.getElementById('content-frame');
+            iframe.style.display = 'none';
+            
+            const instructions = document.createElement('div');
+            instructions.style.cssText = `
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                text-align: center;
+                padding: 40px;
+                background: rgba(255,255,255,0.1);
+                border-radius: 8px;
+            `;
+            instructions.innerHTML = `
+                <h2>Manual Selection Mode</h2>
+                <p>Due to security restrictions, automatic selection is not available for this site.</p>
+                </ol>
+                <button class="toolbar-btn primary" onclick="openManualEditor()">Open Manual Editor</button>
+            `;
+            document.body.appendChild(instructions);
+        }
+        
+        // Button handlers
+        document.getElementById('add-field-btn').addEventListener('click', () => {
+            if (interactiveOverlay) {
+                interactiveOverlay.startSelection('field');
+            }
+        });
+        
+        document.getElementById('add-container-btn').addEventListener('click', () => {
+            if (interactiveOverlay) {
+                interactiveOverlay.startSelection('container');
+            }
+        });
+        
+        document.getElementById('auto-detect-btn').addEventListener('click', async () => {
+            updateStatus('Running auto-detection...');
+            // Auto-detect implementation
+        });
+        
+        document.getElementById('test-btn').addEventListener('click', async () => {
+            updateStatus('Testing template...');
+            // Test current selections
+        });
+        
+        document.getElementById('save-btn').addEventListener('click', async () => {
+            saveTemplate();
+        });
+        
+        document.getElementById('close-btn').addEventListener('click', () => {
+            window.close();
+        });
+        
+        // Save template
+        async function saveTemplate() {
+            const templateName = prompt('Enter template name:');
+            if (!templateName) return;
+            
+            const template = {
+                name: templateName,
+                url: targetUrl,
+                fields: selections.fields,
+                containers: selections.containers
+            };
+            
+            // Send to parent window
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'template_created',
+                    template: template
+                }, '*');
+            }
+            
+            updateStatus('Template saved!');
+        }
+        
+        // Listen for messages from iframe
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'element_selected') {
+                addSelection('field', event.data.data);
+            } else if (event.data.type === 'container_found') {
+                addSelection('container', event.data.data);
+            }
+        });
+        
+        // Add selection to panel
+        function addSelection(type, data) {
+            const key = `${type}_${Date.now()}`;
+            selections[type === 'field' ? 'fields' : 'containers'][key] = data;
+            
+            updateSelectionPanel();
+            document.getElementById('selection-panel').classList.add('active');
+        }
+        
+        // Update selection panel
+        function updateSelectionPanel() {
+            const list = document.getElementById('selections-list');
+            list.innerHTML = '';
+            
+            // Add fields
+            for (const [key, field] of Object.entries(selections.fields)) {
+                const item = createSelectionItem('Field', field.name || key, field.selector, () => {
+                    delete selections.fields[key];
+                    updateSelectionPanel();
+                });
+                list.appendChild(item);
+            }
+            
+            // Add containers
+            for (const [key, container] of Object.entries(selections.containers)) {
+                const item = createSelectionItem('Container', container.name || key, container.selector, () => {
+                    delete selections.containers[key];
+                    updateSelectionPanel();
+                });
+                list.appendChild(item);
+            }
+        }
+        
+        // Create selection item element
+        function createSelectionItem(type, name, selector, onRemove) {
+            const item = document.createElement('div');
+            item.className = 'selection-item';
+            item.innerHTML = `
+                <div class="selection-item-header">
+                    <span class="selection-item-name">${type}: ${name}</span>
+                    <button class="remove-btn">Remove</button>
+                </div>
+                <div class="selection-item-selector">${selector}</div>
+            `;
+            item.querySelector('.remove-btn').addEventListener('click', onRemove);
+            return item;
+        }
+        
+        // Helper functions
+        function updateStatus(message) {
+            document.getElementById('status').textContent = message;
+        }
+        
+        function showError(message) {
+            document.getElementById('error-text').textContent = message;
+            document.getElementById('error-message').style.display = 'block';
+        }
+        
+        // Get interactive overlay code (simplified version)
+        function getInteractiveOverlayCode() {
+            // This would include the full interactive overlay code
+            // For now, returning a simplified version
+            return `
+                class InteractiveOverlay {
+                    constructor(options) {
+                        this.options = options;
+                        this.mode = null;
+                        this.selections = [];
+                    }
+                    
+                    initialize() {
+                        this.attachEventListeners();
+                    }
+                    
+                    attachEventListeners() {
+                        document.addEventListener('click', (e) => {
+                            if (this.mode) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                this.selectElement(e.target);
+                            }
+                        }, true);
+                        
+                        document.addEventListener('mouseover', (e) => {
+                            if (this.mode) {
+                                this.highlightElement(e.target);
+                            }
+                        });
+                    }
+                    
+                    startSelection(type) {
+                        this.mode = type;
+                    }
+                    
+                    selectElement(element) {
+                        const selector = this.generateSelector(element);
+                        const name = prompt('Enter field name:');
+                        if (name) {
+                            this.options.callbacks.onElementSelected(element, selector, name);
+                        }
+                        this.mode = null;
+                    }
+                    
+                    highlightElement(element) {
+                        // Remove previous highlight
+                        document.querySelectorAll('.interactive-highlight').forEach(el => {
+                            el.classList.remove('interactive-highlight');
+                        });
+                        element.classList.add('interactive-highlight');
+                    }
+                    
+                    generateSelector(element) {
+                        // Simple selector generation
+                        if (element.id) {
+                            return '#' + element.id;
+                        }
+                        if (element.className) {
+                            return '.' + element.className.split(' ').join('.');
+                        }
+                        return element.tagName.toLowerCase();
+                    }
+                }
+            `;
+        }
+        
+        // Get interactive overlay styles
+        function getInteractiveOverlayStyles() {
+            return `
+                .interactive-highlight {
+                    outline: 2px solid #00CED1 !important;
+                    background-color: rgba(0, 206, 209, 0.1) !important;
+                    cursor: pointer !important;
+                }
+            `;
+        }
+    </script>
+</body>
+</html>

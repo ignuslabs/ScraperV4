@@ -7,8 +7,14 @@
 ## Overview
 
 ScraperV4 is a production-ready, enterprise-grade web scraping framework built with Python. It features intelligent proxy rotation, advanced stealth capabilities, real-time progress monitoring, and multiple data export formats. The framework uses a template-based approach for scalable and maintainable web scraping operations with sophisticated anti-detection measures.
+    1. Adaptive selector improvements:
+      - Implement real selector suggestion logic
+      - Add failure analysis with pattern matching
+      - Create resilience testing
+    2. Template validator enhancements:
+      - Implement selector robustness testing
+      - Add improvement suggestions based on best practices
 
-**Status**: 100% implemented and production-ready - all service layer stubs have been replaced with fully functional implementations.
 
 ## Key Features
 
@@ -53,6 +59,11 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+
+playwright install
+
+scrapling install
+
 ```
 
 ### Core Dependencies
