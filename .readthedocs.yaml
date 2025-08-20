@@ -1,7 +1,53 @@
+# Read the Docs configuration file
+# See https://docs.readthedocs.io/en/stable/config-file/v2.html for details
+
+version: 2
+
+# Set the version of Python and other tools you might need
 build:
   os: ubuntu-24.04
   tools:
     python: "3.12"
+  jobs:
+    pre_create_environment:
+      # Install system dependencies if needed
+      - echo "Setting up build environment"
+    post_create_environment:
+      # Install Python dependencies
+      - pip install --upgrade pip setuptools wheel
+    post_install:
+      # Additional setup steps
+      - echo "Documentation build setup complete"
 
+# Build documentation with Sphinx
 sphinx:
   configuration: docs/conf.py
+  builder: html
+  fail_on_warning: false
+
+# Specify which formats you want to build
+formats:
+  - pdf
+  - epub
+
+# Specify the Python requirements file for docs
+python:
+  install:
+    - requirements: docs/requirements.txt
+    - requirements: requirements.txt
+    - method: pip
+      path: .
+
+# Search configuration
+search:
+  ranking:
+    "reference/api/frontend-api.md": 10
+    "how-to/*.md": 8
+    "tutorials/*.md": 8
+    "troubleshooting/*.md": 9
+    "reference/*.md": 7
+
+# Submodules configuration
+submodules:
+  include: []
+  exclude: all
