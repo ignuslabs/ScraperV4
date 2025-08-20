@@ -17,6 +17,7 @@ class StealthFetcher(BaseScraper):
         super().__init__()
         self.stealth_config = stealth_config or {}
         self.proxy_rotator = None
+        self.fetcher = Fetcher()  # Initialize the fetcher
         self._setup_stealth_features()
     
     def _setup_stealth_features(self) -> None:
@@ -178,7 +179,7 @@ class StealthFetcher(BaseScraper):
                     detection_results['rate_limiting'] = True
                 elif response.status in [301, 302, 303, 307, 308]:
                     # Check for unusual redirect patterns
-                    if hasattr(response, 'url') and 'challenge' in response.url:
+                    if hasattr(response, 'url') and response.url and 'challenge' in response.url:
                         detection_results['unusual_redirects'] = True
             
             # Generate recommendation based on detected measures
@@ -258,8 +259,8 @@ class StealthFetcher(BaseScraper):
             'different_approach': {'approach': 'alternative'}
         }
         
-        strategy_config = strategy_configs.get(strategy, {})
-        # Configuration applied with real strategy parameters and settings
+        # strategy_config = strategy_configs.get(strategy, {})
+        # Configuration would be applied with real strategy parameters and settings
     
     def _select_bypass_strategies(self, protections: Dict[str, Any]) -> List[str]:
         """Select appropriate bypass strategies based on detected protections."""
@@ -283,7 +284,8 @@ class StealthFetcher(BaseScraper):
     def _apply_bypass_strategy(self, strategy: str) -> None:
         """Apply specific bypass strategy (stub implementation)."""
         # Strategy implementations now include multiple bypass techniques
-        # strategy parameter is used for real bypass implementations
+        # The strategy parameter would be used for real bypass implementations
+        _ = strategy  # Acknowledge the parameter to avoid unused variable warning
         pass
     
     def configure_proxy_rotation(self, proxy_list: List[str]) -> Dict[str, Any]:

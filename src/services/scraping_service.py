@@ -1,6 +1,6 @@
 """Core scraping operations service."""
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 import asyncio
 import re
 import ipaddress
@@ -103,7 +103,7 @@ class ScrapingService(BaseService):
             # Update job status to running
             self.job_manager.update_job_status(job_id, "running")
             self.job_manager.update_job(job_id, {
-                "started_at": datetime.utcnow().isoformat(),
+                "started_at": datetime.now(timezone.utc).isoformat(),
                 "progress": 0
             })
             
@@ -111,7 +111,13 @@ class ScrapingService(BaseService):
             template_name = job.get('template_name')
             target_url = job.get('target_url')
             job_config = job.get('job_config', {})
-            parameters = job.get('parameters', {})
+            # parameters = job.get('parameters', {})  # Currently unused in this method
+            
+            # Validate required parameters
+            if not template_name:
+                raise ValueError("Template name is required")
+            if not target_url:
+                raise ValueError("Target URL is required")
             
             # Load template
             template = self.template_manager.load_template(template_name)
@@ -132,42 +138,45 @@ class ScrapingService(BaseService):
             items_scraped = 0
             items_failed = 0
             all_results = []
+            template_name = str(template_name)  # Ensure it's a string
             
             try:
                 if use_pagination:
                     # Use async pagination scraping
-                    page_count = 0
-                    async for page_result in scraper.scrape_with_pagination_async(
+                    pagination_result = await scraper.scrape_with_pagination_async(
                         target_url, 
                         max_pages=max_pages
-                    ):
-                        page_count += 1
+                    )
+                    
+                    # Process pagination result
+                    if pagination_result.get('status') == 'success':
+                        page_results = pagination_result.get('results', [])
+                        # Process pagination results
                         
-                        # Process each page result
-                        if page_result.get('status') == 'success':
-                            page_data = page_result.get('data', [])
-                            if isinstance(page_data, list):
-                                items_scraped += len(page_data)
-                                all_results.extend(page_data)
+                        for page_result in page_results:
+                            if page_result.get('status') == 'success':
+                                page_data = page_result.get('data', [])
+                                if isinstance(page_data, list):
+                                    items_scraped += len(page_data)
+                                    all_results.extend(page_data)
+                                else:
+                                    items_scraped += 1
+                                    all_results.append(page_data)
                             else:
-                                items_scraped += 1
-                                all_results.append(page_data)
-                        else:
-                            items_failed += 1
+                                items_failed += 1
                         
-                        # Update progress
-                        progress = int((page_count / max_pages) * 100)
+                        # Update final progress
                         self.job_manager.update_job(job_id, {
-                            "progress": progress,
+                            "progress": 100,
                             "items_scraped": items_scraped,
                             "items_failed": items_failed
                         })
                         
-                        # Broadcast progress update via Eel
-                        self._broadcast_job_progress(job_id, progress, items_scraped, items_failed)
-                        
-                        # Allow for graceful cancellation
-                        await asyncio.sleep(0.1)
+                        # Broadcast final progress update via Eel
+                        self._broadcast_job_progress(job_id, 100, items_scraped, items_failed)
+                    else:
+                        items_failed = 1
+                        raise Exception(pagination_result.get('error', 'Pagination scraping failed'))
                 else:
                     # Single page scraping
                     result = scraper.scrape(target_url)
@@ -222,7 +231,7 @@ class ScrapingService(BaseService):
                 # Update job as completed
                 self.job_manager.update_job(job_id, {
                     "status": "completed",
-                    "completed_at": datetime.utcnow().isoformat(),
+                    "completed_at": datetime.now(timezone.utc).isoformat(),
                     "progress": 100,
                     "items_scraped": items_scraped,
                     "items_failed": items_failed,
@@ -248,12 +257,16 @@ class ScrapingService(BaseService):
                 raise
                 
         except Exception as e:
+            # Ensure variables are defined for error handling
+            items_failed = locals().get('items_failed', 1)
+            template_name = locals().get('template_name', '')
+            
             # Update job as failed
             self.job_manager.update_job(job_id, {
                 "status": "failed",
-                "completed_at": datetime.utcnow().isoformat(),
+                "completed_at": datetime.now(timezone.utc).isoformat(),
                 "error_message": str(e),
-                "items_failed": items_failed or 1
+                "items_failed": items_failed
             })
             
             # Clean up task reference
@@ -855,13 +868,15 @@ class ScrapingService(BaseService):
         try:
             import eel
             # Check if Eel is initialized and has the broadcast function
-            if hasattr(eel, 'broadcast_job_progress'):
-                eel.broadcast_job_progress({
+            # Use getattr to safely call the function if it exists (dynamic Eel functions)
+            broadcast_func = getattr(eel, 'broadcast_job_progress', None)
+            if broadcast_func:
+                broadcast_func({
                     'job_id': job_id,
                     'progress': progress,
                     'items_scraped': items_scraped,
                     'items_failed': items_failed,
-                    'timestamp': datetime.utcnow().isoformat()
+                    'timestamp': datetime.now(timezone.utc).isoformat()
                 })
         except Exception as e:
             # Don't let broadcast failures affect the scraping process

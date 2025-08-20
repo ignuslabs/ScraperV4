@@ -48,6 +48,7 @@ curl -I https://httpbin.org/get
 | Frequent timeouts | Check network/proxies | [Network Issues](#part-3-network-and-proxy-issues) |
 | Getting blocked | Enable stealth mode | [Anti-Bot Issues](#part-4-anti-bot-and-blocking-issues) |
 | High memory usage | Optimize batch size | [Performance Issues](#part-5-performance-and-resource-issues) |
+| Playwright won't launch | Check API methods | [Playwright Issues](#part-9-playwright-interactive-mode-issues) |
 
 ## Part 1: Template and Selector Issues
 
@@ -1507,6 +1508,7 @@ This troubleshooting guide covers:
 6. **Data Quality**: Validation, deduplication, formatting
 7. **System Issues**: Startup problems, storage issues
 8. **Recovery**: Job recovery, backups, maintenance
+9. **Playwright Interactive Mode**: Frontend API integration, browser launch issues
 
 ### Quick Reference Commands
 
@@ -1527,5 +1529,67 @@ df -h
 free -m  # Linux
 vm_stat  # macOS
 ```
+
+## Part 9: Playwright Interactive Mode Issues
+
+### Issue 9.1: Playwright Interactive Mode Won't Launch
+
+**Symptoms**: 
+- Frontend shows "Error starting Playwright interactive mode: {}"
+- Empty error objects in console logs
+- Interactive mode button produces no visible response
+
+**Quick Diagnosis**:
+```javascript
+// Check in browser console
+console.log(typeof window.api.startPlaywrightInteractive);
+// Should return "function", not "undefined"
+```
+
+**Most Common Cause**: Missing frontend API methods in `/web/static/js/api.js`.
+
+**Quick Solution**: Add the missing Playwright methods to the `ScraperAPI` class:
+
+```javascript
+// Add these methods to the ScraperAPI class
+async startPlaywrightInteractive(url, options = {}) {
+    try {
+        return await eel.start_playwright_interactive(url, options)();
+    } catch (error) {
+        console.error('Failed to start Playwright interactive mode:', error);
+        throw error;
+    }
+}
+
+// Add remaining methods: getBrowserScreenshot, startElementSelection, 
+// stopElementSelection, selectElementAtCoordinates, etc.
+```
+
+**Detailed Solution**: See the [complete Playwright troubleshooting guide](../troubleshooting/playwright-interactive-issues.md) for:
+- Full list of required API methods
+- Step-by-step implementation
+- Dependency installation 
+- Advanced debugging techniques
+
+### Issue 9.2: Browser Dependencies Missing
+
+**Symptoms**: Backend errors about missing Playwright modules
+
+**Quick Solution**:
+```bash
+source venv/bin/activate
+pip install playwright playwright-stealth
+playwright install chromium
+```
+
+### Issue 9.3: Sessions Not Closing Properly
+
+**Symptoms**: Multiple browser instances remain open
+
+**Quick Solution**: Implement proper session cleanup in your application lifecycle.
+
+**For comprehensive Playwright troubleshooting**, including detailed solutions, diagnostic scripts, and prevention strategies, see: [Playwright Interactive Mode Troubleshooting Guide](../troubleshooting/playwright-interactive-issues.md)
+
+---
 
 Keep this guide handy for quick problem resolution and system maintenance!

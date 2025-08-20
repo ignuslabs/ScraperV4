@@ -631,7 +631,16 @@ def register_api_routes():
             
             # Fetch page HTML
             scraper = TemplateScraper()
-            html = scraper.fetch_page(url)
+            response = scraper.fetch_page(url)
+            
+            if not response:
+                return {
+                    "success": False,
+                    "error": "Failed to fetch page"
+                }
+            
+            # Extract HTML string from Scrapling response
+            html = str(response.body)
             
             if not html:
                 return {
@@ -711,6 +720,349 @@ def register_api_routes():
             
         except Exception as e:
             logger.error(f"Failed to apply learning correction: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    # =================================================================
+    # PLAYWRIGHT INTERACTIVE MODE ENDPOINTS
+    # =================================================================
+    
+    @eel.expose
+    def start_playwright_interactive(url: str, options: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Start a new Playwright interactive session."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            import uuid
+            
+            # Generate unique session ID
+            session_id = str(uuid.uuid4())
+            
+            # Get or create service instance
+            try:
+                interactive_service = container.get(PlaywrightInteractiveService)
+            except:
+                interactive_service = PlaywrightInteractiveService()
+                container.register_singleton(PlaywrightInteractiveService, interactive_service)
+            
+            # Start session asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    interactive_service.start_session(session_id, url, options or {})
+                )
+            finally:
+                loop.close()
+            
+            if result['success']:
+                logger.info(f"Started Playwright interactive session {session_id} for {url}")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to start Playwright interactive session: {e}")
+            return {
+                "success": False,
+                "error": f"Failed to start interactive session: {str(e)}"
+            }
+    
+    @eel.expose 
+    def get_browser_screenshot(session_id: str, full_page: bool = False) -> Dict[str, Any]:
+        """Take a screenshot of the browser session."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            
+            # Take screenshot asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                screenshot = loop.run_until_complete(
+                    interactive_service.take_screenshot(session_id, full_page)
+                )
+            finally:
+                loop.close()
+            
+            if screenshot:
+                return {
+                    "success": True,
+                    "screenshot": screenshot,
+                    "session_id": session_id
+                }
+            else:
+                return {
+                    "success": False,
+                    "error": "Failed to take screenshot or session not found"
+                }
+                
+        except Exception as e:
+            logger.error(f"Failed to take screenshot: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def start_element_selection(session_id: str) -> Dict[str, Any]:
+        """Start element selection mode in browser."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            
+            # Start selection mode asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    interactive_service.start_element_selection(session_id)
+                )
+            finally:
+                loop.close()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to start element selection: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def stop_element_selection(session_id: str) -> Dict[str, Any]:
+        """Stop element selection mode in browser."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            
+            # Stop selection mode asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    interactive_service.stop_element_selection(session_id)
+                )
+            finally:
+                loop.close()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to stop element selection: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def select_element_at_coordinates(session_id: str, x: int, y: int) -> Dict[str, Any]:
+        """Select element at specific coordinates."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            
+            # Select element asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    interactive_service.select_element_at_coordinates(session_id, x, y)
+                )
+            finally:
+                loop.close()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to select element at coordinates: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def get_selected_elements(session_id: str) -> Dict[str, Any]:
+        """Get all selected elements from the session."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            
+            # Get selected elements asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    interactive_service.get_selected_elements(session_id)
+                )
+            finally:
+                loop.close()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get selected elements: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def get_page_info(session_id: str) -> Dict[str, Any]:
+        """Get current page information."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            
+            # Get page info asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    interactive_service.get_page_info(session_id)
+                )
+            finally:
+                loop.close()
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to get page info: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def close_interactive_session(session_id: str) -> Dict[str, Any]:
+        """Close a Playwright interactive session."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            
+            # Close session asynchronously
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(
+                    interactive_service.close_session(session_id)
+                )
+            finally:
+                loop.close()
+            
+            logger.info(f"Closed Playwright interactive session {session_id}")
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to close interactive session: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def get_active_interactive_sessions() -> Dict[str, Any]:
+        """Get list of active interactive sessions."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            
+            interactive_service = container.get(PlaywrightInteractiveService)
+            sessions = interactive_service.get_active_sessions()
+            
+            return {
+                "success": True,
+                "sessions": sessions,
+                "count": len(sessions)
+            }
+            
+        except Exception as e:
+            logger.error(f"Failed to get active sessions: {e}")
+            return {
+                "success": False,
+                "error": str(e)
+            }
+    
+    @eel.expose
+    def create_template_from_selections(session_id: str, template_name: str, template_description: str = "") -> Dict[str, Any]:
+        """Create a template from selected elements."""
+        try:
+            from src.services.playwright_interactive_service import PlaywrightInteractiveService
+            from src.services.template_service import TemplateService
+            
+            # Get selected elements
+            interactive_service = container.get(PlaywrightInteractiveService)
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                elements_result = loop.run_until_complete(
+                    interactive_service.get_selected_elements(session_id)
+                )
+                page_info_result = loop.run_until_complete(
+                    interactive_service.get_page_info(session_id)
+                )
+            finally:
+                loop.close()
+            
+            if not elements_result.get('success'):
+                return elements_result
+            
+            selected_elements = elements_result.get('elements', [])
+            if not selected_elements:
+                return {
+                    "success": False,
+                    "error": "No elements selected"
+                }
+            
+            # Build template from selections
+            selectors = {}
+            for i, element in enumerate(selected_elements):
+                field_name = f"field_{i+1}"
+                if element.get('text'):
+                    # Use text as field name if available and clean
+                    clean_text = element['text'].strip().lower().replace(' ', '_')[:20]
+                    if clean_text and clean_text.replace('_', '').isalnum():
+                        field_name = clean_text
+                
+                selectors[field_name] = {
+                    "selector": element['selector'],
+                    "type": "text",
+                    "xpath": element.get('xpath'),
+                    "description": f"Selected element: {element.get('tag', 'unknown')} with text '{element.get('text', '')[:50]}'"
+                }
+            
+            # Create template data
+            template_data = {
+                "name": template_name,
+                "description": template_description or f"Template created from {len(selected_elements)} selected elements",
+                "selectors": selectors,
+                "fetcher_config": {
+                    "type": "BASIC",
+                    "timeout": 30
+                },
+                "created_from": "playwright_interactive",
+                "source_url": page_info_result.get('info', {}).get('url', ''),
+                "source_domain": page_info_result.get('info', {}).get('domain', '')
+            }
+            
+            # Save template
+            template_service = container.get(TemplateService)
+            result = template_service.create_template(template_data)
+            
+            if result.get('success'):
+                logger.info(f"Created template '{template_name}' from {len(selected_elements)} selected elements")
+            
+            return result
+            
+        except Exception as e:
+            logger.error(f"Failed to create template from selections: {e}")
             return {
                 "success": False,
                 "error": str(e)

@@ -1612,7 +1612,7 @@ class TemplateManager {
      */
     async startInteractiveMode() {
         if (window.logger) {
-            window.logger.info('TemplateManager', 'Starting interactive mode');
+            window.logger.info('TemplateManager', 'Starting Playwright interactive mode');
         }
         
         // Prompt for URL
@@ -1624,19 +1624,756 @@ class TemplateManager {
             new URL(url);
         } catch (error) {
             if (window.notifications) {
-                window.notifications.error('Invalid URL provided');
+                window.notifications.error('Invalid URL', 'Please enter a valid URL');
             } else {
                 alert('Invalid URL provided');
             }
             return;
         }
         
-        // Always use new window due to CORS restrictions
-        this.startInteractiveModeInNewWindow(url);
+        // Use new Playwright-based interactive mode
+        this.startPlaywrightInteractiveMode(url);
     }
     
     /**
-     * Start interactive mode in new window
+     * Start Playwright-based interactive mode
+     */
+    async startPlaywrightInteractiveMode(url) {
+        try {
+            // Show loading indicator
+            if (window.notifications) {
+                window.notifications.info('Starting Interactive Mode', 'Launching browser session...');
+            }
+            
+            // Start Playwright session
+            const result = await window.api.startPlaywrightInteractive(url, {
+                headless: false,
+                viewport: { width: 1280, height: 720 }
+            });
+            
+            if (!result.success) {
+                if (window.notifications) {
+                    window.notifications.error('Failed to Start', result.error || 'Could not start interactive mode');
+                } else {
+                    alert('Failed to start interactive mode: ' + (result.error || 'Unknown error'));
+                }
+                return;
+            }
+            
+            // Store session info
+            this.currentInteractiveSession = {
+                sessionId: result.session_id,
+                url: result.url,
+                viewport: result.viewport
+            };
+            
+            // Show the interactive interface
+            this.showPlaywrightInteractiveInterface(result);
+            
+            if (window.logger) {
+                window.logger.info('TemplateManager', 'Playwright interactive session started', {
+                    sessionId: result.session_id,
+                    url: result.url
+                });
+            }
+            
+        } catch (error) {
+            console.error('Error starting Playwright interactive mode:', error);
+            if (window.notifications) {
+                window.notifications.error('Error', 'Failed to start interactive mode');
+            } else {
+                alert('Error starting interactive mode: ' + error.message);
+            }
+        }
+    }
+    
+    /**
+     * Show the Playwright interactive interface
+     */
+    showPlaywrightInteractiveInterface(sessionData) {
+        // Create modal for interactive interface
+        const modal = document.createElement('div');
+        modal.id = 'playwright-interactive-modal';
+        modal.className = 'modal-overlay';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 10000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        `;
+        
+        modal.innerHTML = `
+            <div class="interactive-container" style="
+                width: 90%;
+                height: 90%;
+                background: #1a1a1a;
+                border-radius: 12px;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            ">
+                <!-- Header -->
+                <div class="interactive-header" style="
+                    background: #2d2d2d;
+                    padding: 15px 20px;
+                    display: flex;
+                    justify-content: between;
+                    align-items: center;
+                    border-bottom: 1px solid #404040;
+                ">
+                    <div style="display: flex; align-items: center; gap: 15px;">
+                        <h3 style="margin: 0; color: #ffffff; font-size: 16px;">
+                            🎯 Interactive Template Creator
+                        </h3>
+                        <span style="color: #888; font-size: 12px;" id="session-url">
+                            ${sessionData.url}
+                        </span>
+                    </div>
+                    <div style="display: flex; gap: 10px; align-items: center;">
+                        <button id="start-selection-btn" class="btn btn-success btn-sm" style="
+                            background: #28a745;
+                            color: white;
+                            border: none;
+                            padding: 6px 12px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">▶ Start Selection</button>
+                        
+                        <button id="stop-selection-btn" class="btn btn-danger btn-sm" style="
+                            background: #dc3545;
+                            color: white;
+                            border: none;
+                            padding: 6px 12px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                            display: none;
+                        ">⏹ Stop Selection</button>
+                        
+                        <button id="refresh-screenshot-btn" class="btn btn-secondary btn-sm" style="
+                            background: #6c757d;
+                            color: white;
+                            border: none;
+                            padding: 6px 12px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">🔄 Refresh</button>
+                        
+                        <span id="selected-count" style="
+                            color: #28a745;
+                            font-weight: bold;
+                            font-size: 12px;
+                            margin: 0 10px;
+                        ">Selected: 0</span>
+                        
+                        <button id="create-template-btn" class="btn btn-primary btn-sm" style="
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            padding: 6px 12px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 12px;
+                        ">📁 Create Template</button>
+                        
+                        <button id="close-interactive-btn" class="btn btn-light btn-sm" style="
+                            background: #f8f9fa;
+                            color: #333;
+                            border: none;
+                            padding: 6px 10px;
+                            border-radius: 4px;
+                            cursor: pointer;
+                            font-size: 14px;
+                            font-weight: bold;
+                        ">✕</button>
+                    </div>
+                </div>
+                
+                <!-- Content Area -->
+                <div class="interactive-content" style="
+                    flex: 1;
+                    display: flex;
+                    overflow: hidden;
+                ">
+                    <!-- Browser View -->
+                    <div class="browser-view" style="
+                        flex: 1;
+                        background: #000;
+                        position: relative;
+                        overflow: auto;
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                    ">
+                        <img id="browser-screenshot" style="
+                            max-width: 100%;
+                            max-height: 100%;
+                            cursor: crosshair;
+                            border: 1px solid #404040;
+                        " src="${sessionData.screenshot || ''}" alt="Browser Screenshot">
+                        
+                        <div id="loading-overlay" style="
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(0, 0, 0, 0.7);
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            color: white;
+                            font-size: 16px;
+                        ">
+                            Loading browser view...
+                        </div>
+                    </div>
+                    
+                    <!-- Side Panel -->
+                    <div class="side-panel" style="
+                        width: 350px;
+                        background: #2d2d2d;
+                        border-left: 1px solid #404040;
+                        display: flex;
+                        flex-direction: column;
+                    ">
+                        <!-- Selected Elements -->
+                        <div style="
+                            padding: 15px;
+                            border-bottom: 1px solid #404040;
+                        ">
+                            <h4 style="margin: 0 0 10px 0; color: #ffffff; font-size: 14px;">
+                                📋 Selected Elements
+                            </h4>
+                            <div id="selected-elements-list" style="
+                                max-height: 200px;
+                                overflow-y: auto;
+                                background: #1a1a1a;
+                                border-radius: 4px;
+                                padding: 8px;
+                            ">
+                                <div style="color: #888; text-align: center; padding: 20px; font-size: 12px;">
+                                    No elements selected yet.<br>
+                                    Click "Start Selection" and then click on elements in the browser view.
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Page Info -->
+                        <div style="
+                            padding: 15px;
+                            flex: 1;
+                            overflow-y: auto;
+                        ">
+                            <h4 style="margin: 0 0 10px 0; color: #ffffff; font-size: 14px;">
+                                ℹ️ Page Information
+                            </h4>
+                            <div id="page-info" style="
+                                background: #1a1a1a;
+                                border-radius: 4px;
+                                padding: 10px;
+                                font-size: 12px;
+                                color: #ccc;
+                            ">
+                                Loading page information...
+                            </div>
+                        </div>
+                        
+                        <!-- Instructions -->
+                        <div style="
+                            padding: 15px;
+                            border-top: 1px solid #404040;
+                            background: #1f1f1f;
+                        ">
+                            <h4 style="margin: 0 0 8px 0; color: #ffffff; font-size: 12px;">
+                                💡 Instructions
+                            </h4>
+                            <div style="font-size: 11px; color: #aaa; line-height: 1.4;">
+                                1. Click "Start Selection" to begin<br>
+                                2. Click on elements in the browser view<br>
+                                3. Selected elements will appear in the list<br>
+                                4. Click "Create Template" when done
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+        
+        // Bind events
+        this.bindPlaywrightInteractiveEvents();
+        
+        // Load initial data
+        this.refreshBrowserScreenshot();
+        this.loadPageInfo();
+        
+        // Hide loading overlay once screenshot is loaded
+        if (sessionData.screenshot) {
+            document.getElementById('loading-overlay').style.display = 'none';
+        }
+    }
+    
+    /**
+     * Bind events for Playwright interactive interface
+     */
+    bindPlaywrightInteractiveEvents() {
+        const modal = document.getElementById('playwright-interactive-modal');
+        if (!modal) return;
+        
+        // Close modal
+        modal.querySelector('#close-interactive-btn').addEventListener('click', () => {
+            this.closePlaywrightInteractiveMode();
+        });
+        
+        // Start/stop selection
+        modal.querySelector('#start-selection-btn').addEventListener('click', () => {
+            this.startElementSelection();
+        });
+        
+        modal.querySelector('#stop-selection-btn').addEventListener('click', () => {
+            this.stopElementSelection();
+        });
+        
+        // Refresh screenshot
+        modal.querySelector('#refresh-screenshot-btn').addEventListener('click', () => {
+            this.refreshBrowserScreenshot();
+        });
+        
+        // Create template
+        modal.querySelector('#create-template-btn').addEventListener('click', () => {
+            this.createTemplateFromSelections();
+        });
+        
+        // Click on screenshot to select elements
+        modal.querySelector('#browser-screenshot').addEventListener('click', (e) => {
+            this.handleScreenshotClick(e);
+        });
+        
+        // Close on outside click
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                this.closePlaywrightInteractiveMode();
+            }
+        });
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', this.handleInteractiveKeyboard.bind(this));
+    }
+    
+    /**
+     * Handle keyboard shortcuts in interactive mode
+     */
+    handleInteractiveKeyboard(e) {
+        if (!document.getElementById('playwright-interactive-modal')) return;
+        
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            this.closePlaywrightInteractiveMode();
+        } else if (e.key === ' ' && e.ctrlKey) {
+            e.preventDefault();
+            // Toggle selection mode
+            const startBtn = document.getElementById('start-selection-btn');
+            const stopBtn = document.getElementById('stop-selection-btn');
+            if (startBtn.style.display !== 'none') {
+                this.startElementSelection();
+            } else {
+                this.stopElementSelection();
+            }
+        }
+    }
+    
+    /**
+     * Handle clicks on the browser screenshot
+     */
+    async handleScreenshotClick(e) {
+        if (!this.isSelectionModeActive) return;
+        
+        const rect = e.target.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        
+        // Calculate coordinates relative to the actual image size
+        const img = e.target;
+        const scaleX = img.naturalWidth / img.clientWidth;
+        const scaleY = img.naturalHeight / img.clientHeight;
+        
+        const actualX = Math.round(x * scaleX);
+        const actualY = Math.round(y * scaleY);
+        
+        try {
+            // Select element at coordinates
+            const result = await window.api.selectElementAtCoordinates(
+                this.currentInteractiveSession.sessionId,
+                actualX,
+                actualY
+            );
+            
+            if (result.success && result.element) {
+                this.addSelectedElement(result.element);
+                this.updateSelectedElementsList();
+                
+                if (window.notifications) {
+                    window.notifications.success('Element Selected', 
+                        `Selected ${result.element.tag} element`);
+                }
+            } else {
+                if (window.notifications) {
+                    window.notifications.warning('No Element', 
+                        'No element found at click position');
+                }
+            }
+        } catch (error) {
+            console.error('Error selecting element:', error);
+            if (window.notifications) {
+                window.notifications.error('Selection Error', 'Failed to select element');
+            }
+        }
+    }
+    
+    /**
+     * Start element selection mode
+     */
+    async startElementSelection() {
+        try {
+            const result = await window.api.startElementSelection(
+                this.currentInteractiveSession.sessionId
+            );
+            
+            if (result.success) {
+                this.isSelectionModeActive = true;
+                
+                // Update UI
+                document.getElementById('start-selection-btn').style.display = 'none';
+                document.getElementById('stop-selection-btn').style.display = 'inline-block';
+                
+                const screenshot = document.getElementById('browser-screenshot');
+                screenshot.style.cursor = 'crosshair';
+                
+                if (window.notifications) {
+                    window.notifications.success('Selection Active', 
+                        'Click on elements in the browser view to select them');
+                }
+            }
+        } catch (error) {
+            console.error('Error starting selection:', error);
+            if (window.notifications) {
+                window.notifications.error('Error', 'Failed to start element selection');
+            }
+        }
+    }
+    
+    /**
+     * Stop element selection mode
+     */
+    async stopElementSelection() {
+        try {
+            const result = await window.api.stopElementSelection(
+                this.currentInteractiveSession.sessionId
+            );
+            
+            if (result.success) {
+                this.isSelectionModeActive = false;
+                
+                // Update UI
+                document.getElementById('start-selection-btn').style.display = 'inline-block';
+                document.getElementById('stop-selection-btn').style.display = 'none';
+                
+                const screenshot = document.getElementById('browser-screenshot');
+                screenshot.style.cursor = 'default';
+                
+                if (window.notifications) {
+                    window.notifications.info('Selection Stopped', 
+                        'Element selection mode deactivated');
+                }
+            }
+        } catch (error) {
+            console.error('Error stopping selection:', error);
+        }
+    }
+    
+    /**
+     * Refresh the browser screenshot
+     */
+    async refreshBrowserScreenshot() {
+        try {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.textContent = 'Refreshing...';
+            }
+            
+            const result = await window.api.getBrowserScreenshot(
+                this.currentInteractiveSession.sessionId
+            );
+            
+            if (result.success && result.screenshot) {
+                const screenshot = document.getElementById('browser-screenshot');
+                if (screenshot) {
+                    screenshot.src = result.screenshot;
+                }
+            }
+            
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'none';
+            }
+        } catch (error) {
+            console.error('Error refreshing screenshot:', error);
+            const loadingOverlay = document.getElementById('loading-overlay');
+            if (loadingOverlay) {
+                loadingOverlay.style.display = 'flex';
+                loadingOverlay.textContent = 'Error loading screenshot';
+            }
+        }
+    }
+    
+    /**
+     * Load page information
+     */
+    async loadPageInfo() {
+        try {
+            const result = await window.api.getPageInfo(
+                this.currentInteractiveSession.sessionId
+            );
+            
+            if (result.success && result.info) {
+                const info = result.info;
+                const pageInfoDiv = document.getElementById('page-info');
+                if (pageInfoDiv) {
+                    pageInfoDiv.innerHTML = `
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #4CAF50;">Title:</strong><br>
+                            <span style="color: #ccc;">${info.title || 'No title'}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #4CAF50;">Domain:</strong><br>
+                            <span style="color: #ccc;">${info.domain || 'Unknown'}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #4CAF50;">Elements:</strong>
+                            <span style="color: #81C784;">${info.elements_count || 0}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #4CAF50;">Forms:</strong>
+                            <span style="color: #81C784;">${info.forms_count || 0}</span>
+                        </div>
+                        <div style="margin-bottom: 8px;">
+                            <strong style="color: #4CAF50;">Links:</strong>
+                            <span style="color: #81C784;">${info.links_count || 0}</span>
+                        </div>
+                        <div>
+                            <strong style="color: #4CAF50;">Images:</strong>
+                            <span style="color: #81C784;">${info.images_count || 0}</span>
+                        </div>
+                    `;
+                }
+            }
+        } catch (error) {
+            console.error('Error loading page info:', error);
+        }
+    }
+    
+    /**
+     * Add selected element to the list
+     */
+    addSelectedElement(element) {
+        if (!this.selectedElements) {
+            this.selectedElements = [];
+        }
+        
+        // Check if element already selected (by selector)
+        const existingIndex = this.selectedElements.findIndex(
+            el => el.css_selector === element.css_selector
+        );
+        
+        if (existingIndex >= 0) {
+            // Remove if already selected
+            this.selectedElements.splice(existingIndex, 1);
+        } else {
+            // Add new selection
+            this.selectedElements.push(element);
+        }
+        
+        this.updateSelectedElementsList();
+    }
+    
+    /**
+     * Update the selected elements list UI
+     */
+    updateSelectedElementsList() {
+        const listDiv = document.getElementById('selected-elements-list');
+        const countSpan = document.getElementById('selected-count');
+        
+        if (!listDiv || !this.selectedElements) return;
+        
+        // Update count
+        if (countSpan) {
+            countSpan.textContent = `Selected: ${this.selectedElements.length}`;
+        }
+        
+        if (this.selectedElements.length === 0) {
+            listDiv.innerHTML = `
+                <div style="color: #888; text-align: center; padding: 20px; font-size: 12px;">
+                    No elements selected yet.<br>
+                    Click "Start Selection" and then click on elements in the browser view.
+                </div>
+            `;
+            return;
+        }
+        
+        // Build elements list
+        const elementsHTML = this.selectedElements.map((element, index) => `
+            <div style="
+                background: #333;
+                border-radius: 4px;
+                padding: 8px;
+                margin-bottom: 6px;
+                border-left: 3px solid #4CAF50;
+            ">
+                <div style="
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    margin-bottom: 4px;
+                ">
+                    <span style="color: #4CAF50; font-weight: bold; font-size: 11px;">
+                        ${index + 1}. ${element.tag?.toUpperCase() || 'ELEMENT'}
+                    </span>
+                    <button onclick="templateManager.removeSelectedElement(${index})" style="
+                        background: #dc3545;
+                        color: white;
+                        border: none;
+                        border-radius: 2px;
+                        padding: 2px 6px;
+                        cursor: pointer;
+                        font-size: 10px;
+                    ">✕</button>
+                </div>
+                ${element.text ? `
+                <div style="color: #ccc; font-size: 10px; margin-bottom: 4px;">
+                    "${element.text.substring(0, 40)}${element.text.length > 40 ? '...' : ''}"
+                </div>` : ''}
+                <div style="color: #81C784; font-size: 9px; font-family: monospace;">
+                    ${element.css_selector}
+                </div>
+            </div>
+        `).join('');
+        
+        listDiv.innerHTML = elementsHTML;
+    }
+    
+    /**
+     * Remove selected element by index
+     */
+    removeSelectedElement(index) {
+        if (this.selectedElements && index >= 0 && index < this.selectedElements.length) {
+            this.selectedElements.splice(index, 1);
+            this.updateSelectedElementsList();
+        }
+    }
+    
+    /**
+     * Create template from selected elements
+     */
+    async createTemplateFromSelections() {
+        if (!this.selectedElements || this.selectedElements.length === 0) {
+            if (window.notifications) {
+                window.notifications.warning('No Elements', 'Please select some elements first');
+            } else {
+                alert('Please select some elements first');
+            }
+            return;
+        }
+        
+        // Prompt for template name
+        const templateName = prompt('Enter template name:');
+        if (!templateName) return;
+        
+        const templateDescription = prompt('Enter template description (optional):') || '';
+        
+        try {
+            const result = await window.api.createTemplateFromSelections(
+                this.currentInteractiveSession.sessionId,
+                templateName,
+                templateDescription
+            );
+            
+            if (result.success) {
+                if (window.notifications) {
+                    window.notifications.success('Template Created', 
+                        `Template "${templateName}" created successfully with ${this.selectedElements.length} elements`);
+                } else {
+                    alert(`Template "${templateName}" created successfully!`);
+                }
+                
+                // Close interactive mode
+                this.closePlaywrightInteractiveMode();
+                
+                // Refresh templates list
+                await this.loadTemplates();
+                
+            } else {
+                if (window.notifications) {
+                    window.notifications.error('Creation Failed', result.error || 'Failed to create template');
+                } else {
+                    alert('Failed to create template: ' + (result.error || 'Unknown error'));
+                }
+            }
+        } catch (error) {
+            console.error('Error creating template:', error);
+            if (window.notifications) {
+                window.notifications.error('Error', 'Failed to create template');
+            } else {
+                alert('Error creating template: ' + error.message);
+            }
+        }
+    }
+    
+    /**
+     * Close Playwright interactive mode
+     */
+    async closePlaywrightInteractiveMode() {
+        try {
+            // Close session
+            if (this.currentInteractiveSession) {
+                await window.api.closeInteractiveSession(this.currentInteractiveSession.sessionId);
+                this.currentInteractiveSession = null;
+            }
+            
+            // Remove modal
+            const modal = document.getElementById('playwright-interactive-modal');
+            if (modal) {
+                modal.remove();
+            }
+            
+            // Clean up state
+            this.selectedElements = [];
+            this.isSelectionModeActive = false;
+            
+            // Remove keyboard listener
+            document.removeEventListener('keydown', this.handleInteractiveKeyboard);
+            
+            if (window.logger) {
+                window.logger.info('TemplateManager', 'Playwright interactive mode closed');
+            }
+            
+        } catch (error) {
+            console.error('Error closing interactive mode:', error);
+        }
+    }
+    
+    /**
+     * Start interactive mode in new window (LEGACY - keeping for fallback)
      */
     startInteractiveModeInNewWindow(url) {
         // Create a proxy page that loads the target site's content

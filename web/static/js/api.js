@@ -205,6 +205,109 @@ class ScraperAPI {
         }
     }
 
+    // Playwright Interactive Mode Methods
+    async startPlaywrightInteractive(url, options = {}) {
+        try {
+            return await eel.start_playwright_interactive(url, options)();
+        } catch (error) {
+            console.error('Failed to start Playwright interactive mode:', error);
+            throw error;
+        }
+    }
+
+    async getBrowserScreenshot(sessionId, fullPage = false) {
+        try {
+            return await eel.get_browser_screenshot(sessionId, fullPage)();
+        } catch (error) {
+            console.error('Failed to get screenshot:', error);
+            throw error;
+        }
+    }
+
+    async startElementSelection(sessionId) {
+        try {
+            return await eel.start_element_selection(sessionId)();
+        } catch (error) {
+            console.error('Failed to start element selection:', error);
+            throw error;
+        }
+    }
+
+    async stopElementSelection(sessionId) {
+        try {
+            return await eel.stop_element_selection(sessionId)();
+        } catch (error) {
+            console.error('Failed to stop element selection:', error);
+            throw error;
+        }
+    }
+
+    async selectElementAtCoordinates(sessionId, x, y) {
+        try {
+            return await eel.select_element_at_coordinates(sessionId, x, y)();
+        } catch (error) {
+            console.error('Failed to select element:', error);
+            throw error;
+        }
+    }
+
+    async getSelectedElements(sessionId) {
+        try {
+            return await eel.get_selected_elements(sessionId)();
+        } catch (error) {
+            console.error('Failed to get selected elements:', error);
+            throw error;
+        }
+    }
+
+    async closePlaywrightSession(sessionId) {
+        try {
+            return await eel.close_playwright_session(sessionId)();
+        } catch (error) {
+            console.error('Failed to close session:', error);
+            throw error;
+        }
+    }
+
+    // Note: Additional methods like navigateToUrl, clickElement, fillFormField, 
+    // and savePlaywrightTemplate can be added when backend endpoints are implemented
+
+    async getPageInfo(sessionId) {
+        try {
+            return await eel.get_page_info(sessionId)();
+        } catch (error) {
+            console.error('Failed to get page info:', error);
+            throw error;
+        }
+    }
+
+    async closeInteractiveSession(sessionId) {
+        try {
+            return await eel.close_interactive_session(sessionId)();
+        } catch (error) {
+            console.error('Failed to close interactive session:', error);
+            throw error;
+        }
+    }
+
+    async getActiveInteractiveSessions() {
+        try {
+            return await eel.get_active_interactive_sessions()();
+        } catch (error) {
+            console.error('Failed to get active sessions:', error);
+            throw error;
+        }
+    }
+
+    async createTemplateFromSelections(sessionId, templateName, templateDescription = "") {
+        try {
+            return await eel.create_template_from_selections(sessionId, templateName, templateDescription)();
+        } catch (error) {
+            console.error('Failed to create template from selections:', error);
+            throw error;
+        }
+    }
+
     // Utility Methods
     async validateUrl(url) {
         try {

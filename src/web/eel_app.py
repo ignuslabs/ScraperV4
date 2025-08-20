@@ -46,8 +46,9 @@ class EelApp:
             # Try graceful shutdown first
             try:
                 # Clean up any resources if needed
-                if hasattr(self, 'cleanup'):
-                    self.cleanup()
+                cleanup_method = getattr(self, 'cleanup', None)
+                if cleanup_method:
+                    cleanup_method()
             except:
                 pass
             

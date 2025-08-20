@@ -2,6 +2,9 @@
 
 This guide provides practical recipes for creating scraping templates using ScraperV4's visual interactive selection system. Each recipe addresses specific scenarios and challenges you'll encounter.
 
+> **🆕 NEW: Playwright Interactive Mode Available!**  
+> For universal compatibility without CORS restrictions, see our new [Playwright Template Creation Guide](playwright-template-creation.md). The Playwright mode works on all websites and provides better performance for modern sites.
+
 ## Prerequisites
 
 - ScraperV4 with interactive selection feature enabled

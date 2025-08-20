@@ -30,14 +30,16 @@ class InteractiveService(BaseService):
         try:
             # Use template scraper to fetch page
             scraper = TemplateScraper()
-            html = scraper.fetch_page(url)
+            response = scraper.fetch_page(url)
             
-            if not html:
+            if not response:
                 return {
                     'success': False,
                     'error': 'Failed to fetch page'
                 }
             
+            # Extract HTML string from Scrapling response
+            html = str(response.body)
             soup = BeautifulSoup(html, 'html.parser')
             
             # Analyze structure
@@ -156,7 +158,7 @@ class InteractiveService(BaseService):
                 sample = {
                     'text': elem.get_text(strip=True)[:100],
                     'tag': elem.name,
-                    'classes': elem.get('class', []),
+                    'classes': elem.get('class') or [],
                     'attributes': dict(elem.attrs)
                 }
                 result['samples'].append(sample)

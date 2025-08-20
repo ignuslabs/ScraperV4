@@ -22,3 +22,7 @@ python-dotenv
 click
 rich
 pydantic
+
+# Install browser automation dependencies
+playwright
+playwright-stealth

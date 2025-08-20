@@ -36,6 +36,7 @@ Our documentation is organized around these four quadrants to help you find exac
 
 - [Installation & Setup](tutorials/installation.md) - Get ScraperV4 running in 5 minutes
 - [Your First Scrape](tutorials/first-scrape.md) - Build and run your first template
+- [Playwright Interactive Mode](tutorials/playwright-interactive-mode.md) - **NEW!** Visual template creation without CORS restrictions
 - [Web Interface Tour](tutorials/web-interface.md) - Navigate the user interface
 
 ### 🎯 Solve Specific Problems
@@ -43,6 +44,7 @@ Our documentation is organized around these four quadrants to help you find exac
 
 #### Core Operations
 - [Create Advanced Templates](how-to/create-templates.md)
+- [Playwright Template Creation](how-to/playwright-template-creation.md) - **NEW!** Advanced recipes for visual template building
 - [Configure Proxy Rotation](how-to/setup-proxies.md)
 - [Handle Anti-Bot Protection](how-to/bypass-detection.md)
 - [Export Data in Different Formats](how-to/export-data.md)
@@ -57,6 +59,7 @@ Our documentation is organized around these four quadrants to help you find exac
 **Want to understand how things work?** Explore the concepts.
 
 - [Architecture Overview](explanations/architecture.md) - System design and components
+- [Playwright Architecture](explanations/playwright-architecture.md) - **NEW!** How Playwright Interactive Mode works
 - [Template Engine](explanations/template-engine.md) - How CSS selectors become data
 - [Proxy Management](explanations/proxy-system.md) - Intelligent rotation strategies
 - [Anti-Detection Techniques](explanations/stealth-features.md) - Staying under the radar
@@ -66,6 +69,7 @@ Our documentation is organized around these four quadrants to help you find exac
 **Need precise technical information?** Find it in our reference.
 
 - [Complete API Reference](reference/api/) - All endpoints and parameters
+- [Playwright API Reference](reference/playwright-api.md) - **NEW!** Playwright Interactive Mode API
 - [Configuration Options](reference/configuration.md) - Every setting explained
 - [Template Schema](reference/template-schema.md) - Template structure specification
 - [Error Codes & Troubleshooting](reference/error-codes.md) - Debugging guide
@@ -118,7 +122,8 @@ ScraperV4 is an enterprise-grade web scraping framework featuring:
 - Clean, responsive web UI built with HTML/CSS/JavaScript
 - Real-time updates via Eel communication framework
 - RESTful API for programmatic access
-- Visual template creation and management
+- **Playwright Interactive Mode** - Visual template creation without CORS restrictions
+- Traditional visual template creation and management
 
 ## Documentation Structure
 
@@ -128,10 +133,12 @@ docs/
 ├── tutorials/                        # Learning-oriented
 │   ├── installation.md              # Getting started
 │   ├── first-scrape.md              # Your first template
+│   ├── playwright-interactive-mode.md # NEW: Playwright visual selection
 │   ├── web-interface.md             # UI walkthrough
 │   └── advanced-features.md         # Complex scenarios
 ├── how-to/                          # Goal-oriented
 │   ├── create-templates.md          # Template creation
+│   ├── playwright-template-creation.md # NEW: Playwright recipes
 │   ├── setup-proxies.md             # Proxy configuration
 │   ├── bypass-detection.md          # Anti-bot handling
 │   ├── export-data.md               # Data export options
@@ -141,6 +148,7 @@ docs/
 │   └── monitor-jobs.md              # Performance monitoring
 ├── explanations/                    # Understanding-oriented
 │   ├── architecture.md              # System design
+│   ├── playwright-architecture.md   # NEW: Playwright design
 │   ├── template-engine.md           # Template concepts
 │   ├── proxy-system.md              # Proxy management
 │   ├── stealth-features.md          # Anti-detection
@@ -151,6 +159,7 @@ docs/
 │   │   ├── templates.md             # Template endpoints
 │   │   ├── data.md                  # Data endpoints
 │   │   └── monitoring.md            # Status endpoints
+│   ├── playwright-api.md            # NEW: Playwright API reference
 │   ├── configuration.md             # Config reference
 │   ├── template-schema.md           # Template structure
 │   ├── error-codes.md               # Error reference
